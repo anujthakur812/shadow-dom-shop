@@ -1,4 +1,4 @@
-import { PRODUCTS, PRODUCT_TYPES } from "./data.js";
+import { PRODUCTS, PRODUCT_TYPES, TYPES } from "./data.js";
 import {
   getCart,
   saveCart,
@@ -10,7 +10,7 @@ import {
   saveAccount,
 } from "./store.js";
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 8;
 
 function escapeHtml(s) {
   const div = document.createElement("div");
@@ -92,6 +92,8 @@ function baseChromeStyles() {
 class ShopHome extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
+    const nProducts = PRODUCTS.length;
+    const nTypes = TYPES.length;
     root.innerHTML = `
       <style>${baseChromeStyles()}</style>
       <style>
@@ -107,7 +109,7 @@ class ShopHome extends HTMLElement {
           box-shadow: var(--shadow);
         }
         .hero h1 { color: white; font-size: 2rem; }
-        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.6; }
+        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.65; }
         .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         .card {
           background: var(--card);
@@ -117,7 +119,7 @@ class ShopHome extends HTMLElement {
           box-shadow: var(--shadow);
         }
         .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
         .ad {
           background: var(--card);
           border: 1px dashed #cbd5e1;
@@ -126,48 +128,256 @@ class ShopHome extends HTMLElement {
           text-align: center;
           color: var(--muted);
           font-size: 0.9rem;
+          line-height: 1.5;
         }
         .ad strong { display: block; color: #0f172a; margin-bottom: 0.35rem; }
         .badge { display: inline-block; background: rgb(255 255 255 / 0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; margin-bottom: 0.75rem; }
+        section.block { margin-top: 2.25rem; }
+        section.block:first-of-type { margin-top: 0; }
+        .stats {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.25rem;
+          box-shadow: var(--shadow);
+        }
+        .stat { text-align: center; }
+        .stat b { display: block; font-size: 1.5rem; color: var(--accent); }
+        .stat span { font-size: 0.85rem; color: var(--muted); }
+        .band {
+          background: #0f172a;
+          color: #e2e8f0;
+          border-radius: var(--radius);
+          padding: 1.5rem;
+          line-height: 1.65;
+        }
+        .band h2 { color: #fff; }
+        .two {
+          display: grid;
+          gap: 1.25rem;
+        }
+        @media (min-width: 800px) {
+          .two.cols { grid-template-columns: 1fr 1fr; align-items: start; }
+        }
+        .quote {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem 1.15rem;
+          box-shadow: var(--shadow);
+          font-size: 0.95rem;
+          color: #334155;
+        }
+        .quote footer { margin-top: 0.65rem; font-size: 0.8rem; color: var(--muted); }
+        details {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 0.65rem 1rem;
+          margin-bottom: 0.5rem;
+        }
+        details summary { cursor: pointer; font-weight: 600; }
+        details p { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+        .news {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem;
+          align-items: center;
+          background: linear-gradient(90deg, #eff6ff, #f8fafc);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem 1.25rem;
+        }
+        .news input { flex: 1 1 200px; margin: 0; }
+        .news button { white-space: nowrap; }
+        .partners {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.75rem 1.25rem;
+          justify-content: center;
+          color: var(--muted);
+          font-size: 0.85rem;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .partners span { opacity: 0.85; }
+        .cta-foot {
+          text-align: center;
+          padding: 2rem 1rem;
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+        }
+        .cta-foot p { color: var(--muted); margin: 0 0 1rem; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.6; }
       </style>
+
       <div class="layout">
         <div>
           <section class="hero">
             <span class="badge">Shadow DOM storefront</span>
             <h1>Everything lives inside shadow roots</h1>
             <p>
-              Browse products with filters and pagination, manage your cart, check out, and update your account —
-              all UI markup and styles are encapsulated so they stay predictable and isolated.
+              Browse a larger catalog with filters and pagination, build a cart that persists locally, walk through checkout,
+              and manage an account — all rendered as custom elements so each screen keeps its own styles and DOM subtree.
             </p>
-            <button type="button" id="cta-products">Shop products</button>
+            <button type="button" id="cta-products">Browse ${nProducts} products</button>
           </section>
-          <section style="margin-top: 1.5rem;">
-            <h2>Why this demo</h2>
+
+          <section class="block">
+            <h2>At a glance</h2>
             <p class="lead">
-              Each screen is a custom element with its own shadow tree. Global CSS from the document does not leak in,
-              and scoped CSS does not leak out — ideal for embedding widgets or keeping themes consistent per island.
+              Shadow Shop is a static demo you can extend: swap images, wire APIs, or embed this shell inside a host page without
+              style collisions.
             </p>
-            <div class="cards">
-              <div class="card"><h3>Pagination</h3><p>Six items per page on the catalog.</p></div>
-              <div class="card"><h3>Filters</h3><p>Narrow by product type.</p></div>
-              <div class="card"><h3>Persistent cart</h3><p>Selections sync via localStorage.</p></div>
+            <div class="stats" aria-label="Store highlights">
+              <div class="stat"><b>${nProducts}</b><span>demo SKUs</span></div>
+              <div class="stat"><b>${nTypes}</b><span>categories</span></div>
+              <div class="stat"><b>24/7</b><span>imaginary support</span></div>
+              <div class="stat"><b>0</b><span>servers required</span></div>
             </div>
           </section>
+
+          <section class="block">
+            <h2>Why this demo</h2>
+            <p class="lead">
+              Each route mounts a different custom element. Global CSS from the outer document does not pierce the shadow boundary,
+              and component CSS does not leak outward — useful for micro-frontends, design systems, and third-party widgets.
+            </p>
+            <div class="cards">
+              <div class="card"><h3>Encapsulation</h3><p>Buttons, cards, and forms inherit the same tokens inside each shadow tree.</p></div>
+              <div class="card"><h3>Pagination</h3><p>Eight items per page on the catalog so lists stay scannable.</p></div>
+              <div class="card"><h3>Filters</h3><p>Narrow the grid by product type; counts update with the dataset.</p></div>
+              <div class="card"><h3>Cart sync</h3><p>Add from the grid; quantities and removals stay in localStorage.</p></div>
+              <div class="card"><h3>Checkout flow</h3><p>Placeholder shipping and card fields mirror a real funnel.</p></div>
+              <div class="card"><h3>Account island</h3><p>Profile fields live in their own shadow root for clarity.</p></div>
+            </div>
+          </section>
+
+          <section class="block band">
+            <h2>How Shadow DOM helps storefronts</h2>
+            <p>
+              Marketing sites often load analytics snippets, chat widgets, and A/B testing overlays that redefine base styles.
+              When your commerce UI sits in an open shadow root, your typography, spacing, and focus rings stay faithful to the
+              design you ship — even if the parent page changes fonts or link colors. You can still pass data in via attributes,
+              properties, or events, which keeps the boundary flexible without sacrificing predictability.
+            </p>
+            <p style="margin-top:1rem;margin-bottom:0">
+              This page adds extra sections so you can scroll through long-form content the same way you would on a production landing page:
+              social proof, FAQs, shipping notes, and newsletter capture — all co-located with the hero without breaking encapsulation.
+            </p>
+          </section>
+
+          <section class="block">
+            <h2>Shipping, returns, and care</h2>
+            <div class="two cols">
+              <div class="card">
+                <h3>Delivery windows</h3>
+                <p>Metro orders ship in two business days in this fictional universe. Rural routes add one to three days depending on carrier partnerships.</p>
+              </div>
+              <div class="card">
+                <h3>Returns</h3>
+                <p>Unopened demo items may be “returned” by clearing localStorage — a cheeky reminder that persistence here is only in your browser.</p>
+              </div>
+              <div class="card">
+                <h3>Packaging</h3>
+                <p>Imaginary orders use recycled paper inserts and paper tape. Real integrations would pull packaging rules from your OMS.</p>
+              </div>
+              <div class="card">
+                <h3>Product care</h3>
+                <p>Apparel: cold wash, line dry. Electronics: avoid moisture. Home goods: check materials before microwaving — standard retail copy fits neatly here.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="block two cols">
+            <div>
+              <h2>What shoppers say</h2>
+              <p class="lead" style="margin-bottom:1rem">Synthetic quotes for layout — replace with real reviews from your CMS.</p>
+              <blockquote class="quote">
+                “Pagination and filters feel snappy. I like that the cart badge updates without reloading the page.”
+                <footer>— Jordan M., early visitor</footer>
+              </blockquote>
+              <blockquote class="quote" style="margin-top:1rem">
+                “The shadow DOM explanation on the home page actually helped our team explain isolation to stakeholders.”
+                <footer>— Priya S., product designer</footer>
+              </blockquote>
+            </div>
+            <div>
+              <h2>FAQ</h2>
+              <details>
+                <summary>Is my payment data stored?</summary>
+                <p>No. Checkout fields are a UI mock. Nothing is transmitted or stored except what your browser keeps in localStorage for the demo cart and account form.</p>
+              </details>
+              <details>
+                <summary>Can I embed this in WordPress or another CMS?</summary>
+                <p>Yes. Load the script bundle, drop <code>&lt;shop-root&gt;&lt;/shop-root&gt;</code> where you want the island, and ensure module paths resolve. You may need to adjust asset URLs.</p>
+              </details>
+              <details>
+                <summary>Where do product images come from?</summary>
+                <p>picsum.photos with deterministic seeds per SKU so thumbnails stay consistent between visits.</p>
+              </details>
+              <details>
+                <summary>How do I add even more catalog rows?</summary>
+                <p>Edit <code>js/data.js</code> — increase counts per type or append new categories, then reload. Filters derive from the dataset automatically.</p>
+              </details>
+            </div>
+          </section>
+
+          <section class="block">
+            <h2>Stay in the loop</h2>
+            <p class="lead">Newsletter UI only — hook this form to your ESP when you go live.</p>
+            <div class="news">
+              <input type="email" placeholder="you@example.com" aria-label="Email for newsletter" />
+              <button type="button" id="cta-news">Notify me</button>
+            </div>
+          </section>
+
+          <section class="block">
+            <p class="lead" style="margin-bottom:0.75rem;text-align:center">Trusted by pretend teams everywhere</p>
+            <div class="partners">
+              <span>Nimbus Labs</span>
+              <span>Harbor Commerce</span>
+              <span>Northwind Outfitters</span>
+              <span>Pixel Foundry</span>
+              <span>Atlas Logistics</span>
+            </div>
+          </section>
+
+          <section class="block cta-foot">
+            <h2>Ready to browse?</h2>
+            <p>Open the products grid to explore filters, pagination, and add-to-cart — then scroll this page anytime you need a long-form landing layout reference.</p>
+            <button type="button" id="cta-products-2">Browse products</button>
+          </section>
         </div>
+
         <aside>
           <div class="ad" style="margin-bottom: 1rem;">
             <strong>Sponsored</strong>
-            Upgrade your workflow with premium templates. Shadow boundaries keep ad slots isolated from page CSS.
+            Upgrade your workflow with premium templates. Shadow boundaries keep ad slots isolated from host page CSS.
+          </div>
+          <div class="ad" style="margin-bottom: 1rem;">
+            <strong>Seasonal sale</strong>
+            Fictional 20% off sitewide this weekend — swap this block for a live campaign widget when you connect an ad server.
           </div>
           <div class="ad">
             <strong>Featured partner</strong>
-            Placeholder placement — swap with real ad tags when you integrate a network.
+            Placeholder placement for co-marketing. Sticky positioning can be added in the shell if you want the rail to follow scroll.
           </div>
         </aside>
       </div>
     `;
-    root.getElementById("cta-products").addEventListener("click", () => {
+    const goProducts = () => {
       window.location.hash = "products";
+    };
+    root.getElementById("cta-products").addEventListener("click", goProducts);
+    root.getElementById("cta-products-2").addEventListener("click", goProducts);
+    root.getElementById("cta-news").addEventListener("click", () => {
+      alert("Demo only — connect your email API to capture signups.");
     });
   }
 }
@@ -214,9 +424,45 @@ class ShopProducts extends HTMLElement {
           margin-top: 1.5rem; flex-wrap: wrap;
         }
         .pager span { color: var(--muted); font-size: 0.9rem; }
+        .below-fold {
+          margin-top: 2.5rem;
+          padding-top: 2rem;
+          border-top: 1px solid var(--border);
+        }
+        .below-fold h2 { margin-top: 1.75rem; }
+        .below-fold h2:first-child { margin-top: 0; }
+        .tip-grid {
+          display: grid;
+          gap: 1rem;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
+        .tip {
+          background: #f8fafc;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem 1.1rem;
+          font-size: 0.92rem;
+          line-height: 1.55;
+          color: #334155;
+        }
+        .tip strong { display: block; color: #0f172a; margin-bottom: 0.35rem; }
+        .banner {
+          background: linear-gradient(90deg, #1e3a8a, #4338ca);
+          color: #e0e7ff;
+          border-radius: var(--radius);
+          padding: 1.25rem 1.5rem;
+          margin-top: 1.5rem;
+          line-height: 1.6;
+          font-size: 0.95rem;
+        }
+        .banner strong { color: #fff; }
+        .longcopy { color: var(--muted); line-height: 1.65; font-size: 0.95rem; max-width: 72ch; }
       </style>
       <h1>Products</h1>
-      <p class="lead">Filter by type and move between pages. Add items to your cart — they appear on the Cart page.</p>
+      <p class="lead">
+        ${PRODUCTS.length} items across ${TYPES.length} categories — filter, paginate (${PAGE_SIZE} per page), and add to your cart.
+        Scroll past the grid for sizing notes, fulfillment copy, and care tips.
+      </p>
       <div class="toolbar">
         <div class="field">
           <label for="type-filter">Type</label>
@@ -225,6 +471,53 @@ class ShopProducts extends HTMLElement {
       </div>
       <div class="grid" id="grid"></div>
       <div class="pager" id="pager"></div>
+
+      <div class="below-fold">
+        <h2>Using this catalog</h2>
+        <p class="longcopy">
+          Pagination keeps the shadow tree lighter: only the current page of cards is in the DOM at once, which helps slower devices
+          while still giving you many SKUs to browse. Change <code style="background:#f1f5f9;padding:0.1rem 0.35rem;border-radius:6px;font-size:0.85em">PAGE_SIZE</code>
+          in <code style="background:#f1f5f9;padding:0.1rem 0.35rem;border-radius:6px;font-size:0.85em">app.js</code> if you want more rows per screen.
+        </p>
+
+        <h2>Category snapshots</h2>
+        <div class="tip-grid">
+          <div class="tip"><strong>Electronics</strong> Cables, deskside peripherals, and small gadgets — check voltage and regional plugs before checkout in a real store.</div>
+          <div class="tip"><strong>Apparel</strong> Unisex sizing in this demo. Use filters to focus on one department while you compare colors and materials.</div>
+          <div class="tip"><strong>Home</strong> Kitchen, décor, and everyday utilities. Bundle-friendly: add multiple lines to see the cart math update.</div>
+          <div class="tip"><strong>Beauty</strong> Topicals for demonstration only — always patch test real cosmetics and read ingredient lists.</div>
+          <div class="tip"><strong>Sports</strong> Training accessories with varied price points so totals look realistic when you test checkout.</div>
+        </div>
+
+        <h2>Fulfillment &amp; expectations</h2>
+        <p class="longcopy">
+          This project does not call a warehouse API. Treat shipping timelines, inventory counts, and backorder messages as static copy
+          you can replace once you connect ERP or commerce APIs. The long section exists so product and marketing stakeholders can scroll
+          through realistic density while reviewing the layout inside the shadow boundary.
+        </p>
+
+        <div class="banner">
+          <strong>Prototyping tip:</strong> keep high-resolution photography outside the shadow if you need <code>&lt;picture&gt;</code> art direction shared with the host —
+          or colocate assets here for full encapsulation. Either pattern works with web components.
+        </div>
+
+        <h2>Accessibility checklist</h2>
+        <p class="longcopy">
+          When you extend the grid, preserve keyboard focus order: pagination buttons should stay adjacent to the list in the tab sequence,
+          and filter controls should announce changes to screen readers via live regions if you fetch new pages from a server.
+        </p>
+
+        <h2>More placeholder detail</h2>
+        <p class="longcopy">
+          Loyalty points, gift messages, and subscription frequency are common upsells on product pages. This block mimics the vertical rhythm
+          of those modules so you can eyeball spacing, ad slots, and cross-sells without touching cart logic. Duplicate or trim these paragraphs
+          to match your brand voice.
+        </p>
+        <p class="longcopy" style="margin-top:1rem">
+          If you need infinite scroll instead of numbered pages, swap the pager for an IntersectionObserver that appends batches — the shadow
+          DOM pattern stays the same. Remember to virtualize rows if you render hundreds of nodes simultaneously.
+        </p>
+      </div>
     `;
 
     const sel = root.getElementById("type-filter");
