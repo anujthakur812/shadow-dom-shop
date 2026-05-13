@@ -579,6 +579,49 @@ class ShopCheckoutPanel extends HTMLElement {
           padding: 1.25rem;
           box-shadow: var(--shadow);
         }
+        .payment-list {
+          display: grid;
+          gap: 0.6rem;
+          margin-bottom: 1rem;
+        }
+        .payment-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.6rem;
+          padding: 0.75rem;
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          background: #fff;
+        }
+        .payment-item input[type="radio"] {
+          width: auto;
+          margin-top: 0.2rem;
+        }
+        .payment-item .label-text {
+          display: block;
+          font-weight: 700;
+          margin-bottom: 0.15rem;
+        }
+        .payment-item .hint {
+          display: block;
+          color: var(--muted);
+          font-size: 0.85rem;
+          line-height: 1.45;
+        }
+        .method-fields {
+          margin-bottom: 1rem;
+          padding: 0.85rem;
+          border: 1px dashed var(--border);
+          border-radius: 10px;
+          background: #f8fafc;
+        }
+        .method-fields[hidden] { display: none; }
+        .mini {
+          color: var(--muted);
+          font-size: 0.82rem;
+          margin: 0.2rem 0 0;
+          line-height: 1.4;
+        }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; }
         .summary-total { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem; }
       </style>
@@ -587,19 +630,114 @@ class ShopCheckoutPanel extends HTMLElement {
           <h2>Shipping</h2>
           <div class="field"><label for="full">Full name</label><input id="full" name="full" required autocomplete="name" /></div>
           <div class="field"><label for="line1">Address line 1</label><input id="line1" name="line1" required autocomplete="address-line1" /></div>
+          <div class="field"><label for="line2">Address line 2</label><input id="line2" name="line2" autocomplete="address-line2" /></div>
           <div class="field"><label for="city">City</label><input id="city" name="city" required autocomplete="address-level2" /></div>
-          <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
-          <h2 style="margin-top:1rem">Payment</h2>
-          <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-            <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
-            <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" autocomplete="cc-csc" /></div>
+            <div class="field"><label for="state">State</label><input id="state" name="state" required autocomplete="address-level1" /></div>
+            <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
           </div>
+          <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" /></div>
+
+          <h2 style="margin-top:1rem">Payment</h2>
+          <div class="payment-list">
+            <label class="payment-item">
+              <input type="radio" name="paymentMethod" value="upi" checked />
+              <span>
+                <span class="label-text">UPI</span>
+                <span class="hint">Pay via UPI ID or app (Google Pay, PhonePe, Paytm).</span>
+              </span>
+            </label>
+            <label class="payment-item">
+              <input type="radio" name="paymentMethod" value="card" />
+              <span>
+                <span class="label-text">Credit / Debit Card</span>
+                <span class="hint">Visa, Mastercard, RuPay, and AmEx supported in this demo.</span>
+              </span>
+            </label>
+            <label class="payment-item">
+              <input type="radio" name="paymentMethod" value="cod" />
+              <span>
+                <span class="label-text">Cash on Delivery</span>
+                <span class="hint">Pay at delivery for eligible orders under Rs. 5000.</span>
+              </span>
+            </label>
+            <label class="payment-item">
+              <input type="radio" name="paymentMethod" value="wallet" />
+              <span>
+                <span class="label-text">Wallet</span>
+                <span class="hint">Use your store wallet balance or linked prepaid wallet.</span>
+              </span>
+            </label>
+            <label class="payment-item">
+              <input type="radio" name="paymentMethod" value="netbanking" />
+              <span>
+                <span class="label-text">Net Banking</span>
+                <span class="hint">Choose your bank and continue to secure login.</span>
+              </span>
+            </label>
+          </div>
+
+          <div class="method-fields" data-method="upi">
+            <div class="field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" placeholder="name@bank" /></div>
+            <p class="mini">A collect request will be sent to your UPI app.</p>
+          </div>
+
+          <div class="method-fields" data-method="card" hidden>
+            <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
+              <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" autocomplete="cc-csc" /></div>
+            </div>
+          </div>
+
+          <div class="method-fields" data-method="cod" hidden>
+            <div class="field">
+              <label for="codNote">Delivery instruction</label>
+              <input id="codNote" name="codNote" placeholder="Landmark, gate code, preferred slot" />
+            </div>
+            <p class="mini">Keep exact change ready when possible for faster handoff.</p>
+          </div>
+
+          <div class="method-fields" data-method="wallet" hidden>
+            <div class="field"><label for="walletId">Wallet ID / mobile</label><input id="walletId" name="walletId" inputmode="tel" /></div>
+            <p class="mini">Available balance and OTP verification will be shown in real integrations.</p>
+          </div>
+
+          <div class="method-fields" data-method="netbanking" hidden>
+            <div class="field">
+              <label for="bankName">Select bank</label>
+              <select id="bankName" name="bankName">
+                <option value="">Choose bank</option>
+                <option value="sbi">State Bank of India</option>
+                <option value="hdfc">HDFC Bank</option>
+                <option value="icici">ICICI Bank</option>
+                <option value="axis">Axis Bank</option>
+                <option value="kotak">Kotak Mahindra Bank</option>
+              </select>
+            </div>
+          </div>
+
+          <h2 style="margin-top:1rem">Billing extras</h2>
+          <div class="field">
+            <label><input type="checkbox" name="sameAddress" checked style="width:auto;margin-right:0.5rem;" /> Billing address same as shipping</label>
+          </div>
+          <div class="field"><label for="notes">Order note</label><textarea id="notes" name="notes" rows="3" placeholder="Any special instructions for packing or delivery"></textarea></div>
           <button type="submit">Place order</button>
         </form>
         <div class="panel" id="summary-panel"></div>
       </div>
     `;
+
+    const methodInputs = root.querySelectorAll('input[name="paymentMethod"]');
+    const methodBlocks = root.querySelectorAll(".method-fields");
+    const syncMethodSections = () => {
+      const selected = root.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
+      methodBlocks.forEach((block) => {
+        block.hidden = block.getAttribute("data-method") !== selected;
+      });
+    };
+    methodInputs.forEach((input) => input.addEventListener("change", syncMethodSections));
+    syncMethodSections();
 
     const paintSummary = () => {
       const cart = getCart();
@@ -628,8 +766,9 @@ class ShopCheckoutPanel extends HTMLElement {
         alert("Your cart is empty.");
         return;
       }
+      const method = root.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
       saveCart([]);
-      alert("Thanks — demo order placed. Cart cleared.");
+      alert(`Thanks — demo order placed with ${method.toUpperCase()}. Cart cleared.`);
       window.location.hash = "home";
     });
   }
