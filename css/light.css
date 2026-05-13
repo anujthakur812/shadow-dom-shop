@@ -1,0 +1,419 @@
+/**
+ * Light DOM styles: shell, page chrome, and marketing sections.
+ * Shadow DOM widgets (shop-catalog, shop-cart-panel, etc.) carry their own scoped CSS.
+ */
+
+:root {
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.06);
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: #0f172a;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+main.page-outlet a {
+  color: var(--accent);
+  text-decoration: none;
+}
+main.page-outlet a:hover {
+  text-decoration: underline;
+}
+
+main.page-outlet h1 {
+  font-size: 1.75rem;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+main.page-outlet h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.75rem;
+}
+main.page-outlet p.lead {
+  color: var(--muted);
+  margin: 0 0 1.25rem;
+  line-height: 1.6;
+}
+
+main.page-outlet button.action {
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+main.page-outlet button.action:hover {
+  background: var(--accent-hover);
+}
+
+/* ----- Shell (light DOM under shop-root) ----- */
+
+.shop-shell {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 32%);
+  padding: 1rem clamp(1rem, 4vw, 2rem) 2rem;
+}
+
+.shop-shell header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.shop-shell .brand {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  text-decoration: none;
+}
+.shop-shell .brand:hover {
+  opacity: 0.85;
+}
+
+.shop-shell nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+}
+
+.shop-shell nav a {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+.shop-shell nav a:hover {
+  background: #e2e8f0;
+}
+.shop-shell nav a.active {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.shop-shell .cart-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  margin-left: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: var(--accent);
+  color: white;
+  border-radius: 999px;
+}
+
+.shop-shell main.page-outlet {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.shadow-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 1.25rem;
+  line-height: 1.5;
+}
+
+.shadow-note code {
+  font-size: 0.8em;
+  background: #fff;
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+/* ----- Home page (light DOM) ----- */
+
+.page-home .layout {
+  display: grid;
+  gap: 1.5rem;
+}
+@media (min-width: 900px) {
+  .page-home .layout {
+    grid-template-columns: 1fr 280px;
+    align-items: start;
+  }
+}
+
+.page-home .hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.page-home .hero h1 {
+  color: white;
+  font-size: 2rem;
+}
+.page-home .hero p {
+  opacity: 0.95;
+  margin: 0 0 1rem;
+  line-height: 1.65;
+}
+.page-home .badge {
+  display: inline-block;
+  background: rgb(255 255 255 / 0.2);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.page-home .cards {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+.page-home .card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  box-shadow: var(--shadow);
+}
+.page-home .card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+.page-home .card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.page-home .ad {
+  background: var(--card);
+  border: 1px dashed #cbd5e1;
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.page-home .ad strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+
+.page-home section.block {
+  margin-top: 2.25rem;
+}
+.page-home section.block:first-of-type {
+  margin-top: 0;
+}
+
+.page-home .stats {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+}
+.page-home .stat {
+  text-align: center;
+}
+.page-home .stat b {
+  display: block;
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+.page-home .stat span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.page-home .band {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  line-height: 1.65;
+}
+.page-home .band h2 {
+  color: #fff;
+}
+
+.page-home .two {
+  display: grid;
+  gap: 1.25rem;
+}
+@media (min-width: 800px) {
+  .page-home .two.cols {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.page-home .quote {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.15rem;
+  box-shadow: var(--shadow);
+  font-size: 0.95rem;
+  color: #334155;
+}
+.page-home .quote footer {
+  margin-top: 0.65rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.page-home details {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 0.5rem;
+}
+.page-home details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.page-home details p {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.page-home .news {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  background: linear-gradient(90deg, #eff6ff, #f8fafc);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+.page-home .news input {
+  flex: 1 1 200px;
+  font: inherit;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.page-home .news button {
+  white-space: nowrap;
+}
+
+.page-home .partners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.page-home .cta-foot {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.page-home .cta-foot p {
+  color: var(--muted);
+  margin: 0 0 1rem;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ----- Products page chrome (light DOM) ----- */
+
+.page-products .below-fold {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border);
+}
+.page-products .below-fold h2 {
+  margin-top: 1.75rem;
+}
+.page-products .below-fold h2:first-of-type {
+  margin-top: 0;
+}
+.page-products .tip-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+.page-products .tip {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: #334155;
+}
+.page-products .tip strong {
+  display: block;
+  color: #0f172a;
+  margin-bottom: 0.35rem;
+}
+.page-products .banner {
+  background: linear-gradient(90deg, #1e3a8a, #4338ca);
+  color: #e0e7ff;
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+.page-products .banner strong {
+  color: #fff;
+}
+.page-products .longcopy {
+  color: var(--muted);
+  line-height: 1.65;
+  font-size: 0.95rem;
+  max-width: 72ch;
+}
+.page-products .longcopy code {
+  background: #f1f5f9;
+  padding: 0.1rem 0.35rem;
+  border-radius: 6px;
+  font-size: 0.85em;
+}
