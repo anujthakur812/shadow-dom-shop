@@ -27,12 +27,12 @@ function escapeAttr(s) {
 
 const VALID_ROUTES = ["home", "products", "cart", "checkout", "account"];
 
-function baseChromeStyles() {
+/** Scoped CSS for shadow-DOM islands only (catalog grid, cart table, forms). */
+function islandStyles() {
   return `
     :host {
       display: block;
       font-family: "DM Sans", system-ui, sans-serif;
-      font-optical-sizing: auto;
       color: #0f172a;
       --bg: #f8fafc;
       --card: #ffffff;
@@ -83,156 +83,32 @@ function baseChromeStyles() {
       color: #334155;
     }
     .field { margin-bottom: 1rem; }
-    h1 { font-size: 1.75rem; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
-    h2 { font-size: 1.2rem; margin: 0 0 0.75rem; }
-    p.lead { color: var(--muted); margin: 0 0 1.25rem; line-height: 1.6; }
+    h2 { font-size: 1.15rem; margin: 0 0 0.75rem; }
   `;
 }
 
-class ShopHome extends HTMLElement {
-  connectedCallback() {
-    const root = this.attachShadow({ mode: "open" });
-    const nProducts = PRODUCTS.length;
-    const nTypes = TYPES.length;
-    root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
-      <style>
-        .layout { display: grid; gap: 1.5rem; }
-        @media (min-width: 900px) {
-          .layout { grid-template-columns: 1fr 280px; align-items: start; }
-        }
-        .hero {
-          background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
-          color: white;
-          padding: 2rem;
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
-        }
-        .hero h1 { color: white; font-size: 2rem; }
-        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.65; }
-        .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-        .card {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem;
-          box-shadow: var(--shadow);
-        }
-        .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.5; }
-        .ad {
-          background: var(--card);
-          border: 1px dashed #cbd5e1;
-          border-radius: var(--radius);
-          padding: 1rem;
-          text-align: center;
-          color: var(--muted);
-          font-size: 0.9rem;
-          line-height: 1.5;
-        }
-        .ad strong { display: block; color: #0f172a; margin-bottom: 0.35rem; }
-        .badge { display: inline-block; background: rgb(255 255 255 / 0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; margin-bottom: 0.75rem; }
-        section.block { margin-top: 2.25rem; }
-        section.block:first-of-type { margin-top: 0; }
-        .stats {
-          display: grid;
-          gap: 1rem;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1.25rem;
-          box-shadow: var(--shadow);
-        }
-        .stat { text-align: center; }
-        .stat b { display: block; font-size: 1.5rem; color: var(--accent); }
-        .stat span { font-size: 0.85rem; color: var(--muted); }
-        .band {
-          background: #0f172a;
-          color: #e2e8f0;
-          border-radius: var(--radius);
-          padding: 1.5rem;
-          line-height: 1.65;
-        }
-        .band h2 { color: #fff; }
-        .two {
-          display: grid;
-          gap: 1.25rem;
-        }
-        @media (min-width: 800px) {
-          .two.cols { grid-template-columns: 1fr 1fr; align-items: start; }
-        }
-        .quote {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem 1.15rem;
-          box-shadow: var(--shadow);
-          font-size: 0.95rem;
-          color: #334155;
-        }
-        .quote footer { margin-top: 0.65rem; font-size: 0.8rem; color: var(--muted); }
-        details {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          padding: 0.65rem 1rem;
-          margin-bottom: 0.5rem;
-        }
-        details summary { cursor: pointer; font-weight: 600; }
-        details p { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
-        .news {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem;
-          align-items: center;
-          background: linear-gradient(90deg, #eff6ff, #f8fafc);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem 1.25rem;
-        }
-        .news input { flex: 1 1 200px; margin: 0; }
-        .news button { white-space: nowrap; }
-        .partners {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.75rem 1.25rem;
-          justify-content: center;
-          color: var(--muted);
-          font-size: 0.85rem;
-          font-weight: 600;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-        }
-        .partners span { opacity: 0.85; }
-        .cta-foot {
-          text-align: center;
-          padding: 2rem 1rem;
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
-        }
-        .cta-foot p { color: var(--muted); margin: 0 0 1rem; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-      </style>
-
+function homePageHtml(nProducts, nTypes) {
+  return `
+    <div class="page-home">
+      <p class="shadow-note">
+        Shell + sections below live in the <strong>light DOM</strong> (normal document tree). Visit <a href="#products">Products</a> to see the catalog grid inside its own <strong>shadow root</strong>.
+      </p>
       <div class="layout">
         <div>
           <section class="hero">
             <span class="badge">Shadow DOM storefront</span>
-            <h1>Everything lives inside shadow roots</h1>
+            <h1>Light DOM pages, shadow DOM widgets</h1>
             <p>
               Browse a larger catalog with filters and pagination, build a cart that persists locally, walk through checkout,
-              and manage an account — all rendered as custom elements so each screen keeps its own styles and DOM subtree.
+              and manage an account — interactive islands (catalog, cart, checkout, account form) use shadow DOM; this landing copy stays in the light tree so host-page CSS can theme it like any normal page.
             </p>
-            <button type="button" id="cta-products">Browse ${nProducts} products</button>
+            <button type="button" class="action" id="cta-products">Browse ${nProducts} products</button>
           </section>
 
           <section class="block">
             <h2>At a glance</h2>
             <p class="lead">
-              Shadow Shop is a static demo you can extend: swap images, wire APIs, or embed this shell inside a host page without
-              style collisions.
+              Shadow Shop is a static demo you can extend: swap images, wire APIs, or embed this shell inside a host page without colliding with global styles on encapsulated widgets.
             </p>
             <div class="stats" aria-label="Store highlights">
               <div class="stat"><b>${nProducts}</b><span>demo SKUs</span></div>
@@ -245,30 +121,26 @@ class ShopHome extends HTMLElement {
           <section class="block">
             <h2>Why this demo</h2>
             <p class="lead">
-              Each route mounts a different custom element. Global CSS from the outer document does not pierce the shadow boundary,
-              and component CSS does not leak outward — useful for micro-frontends, design systems, and third-party widgets.
+              Each encapsulated widget is a custom element with its own shadow tree. Marketing sections can stay in light DOM for CMS-driven styling; cart and catalog stay predictable inside shadows.
             </p>
             <div class="cards">
-              <div class="card"><h3>Encapsulation</h3><p>Buttons, cards, and forms inherit the same tokens inside each shadow tree.</p></div>
-              <div class="card"><h3>Pagination</h3><p>Eight items per page on the catalog so lists stay scannable.</p></div>
-              <div class="card"><h3>Filters</h3><p>Narrow the grid by product type; counts update with the dataset.</p></div>
+              <div class="card"><h3>Hybrid layout</h3><p>Long-form pages in light DOM; product grid and cart table in shadow islands.</p></div>
+              <div class="card"><h3>Pagination</h3><p>Eight items per page on the catalog island.</p></div>
+              <div class="card"><h3>Filters</h3><p>Narrow the grid by product type inside the catalog shadow tree.</p></div>
               <div class="card"><h3>Cart sync</h3><p>Add from the grid; quantities and removals stay in localStorage.</p></div>
-              <div class="card"><h3>Checkout flow</h3><p>Placeholder shipping and card fields mirror a real funnel.</p></div>
-              <div class="card"><h3>Account island</h3><p>Profile fields live in their own shadow root for clarity.</p></div>
+              <div class="card"><h3>Checkout flow</h3><p>Shipping + summary encapsulated in one checkout island.</p></div>
+              <div class="card"><h3>Account island</h3><p>Profile form scoped separately from the page chrome.</p></div>
             </div>
           </section>
 
           <section class="block band">
-            <h2>How Shadow DOM helps storefronts</h2>
+            <h2>Light DOM vs shadow islands</h2>
             <p>
-              Marketing sites often load analytics snippets, chat widgets, and A/B testing overlays that redefine base styles.
-              When your commerce UI sits in an open shadow root, your typography, spacing, and focus rings stay faithful to the
-              design you ship — even if the parent page changes fonts or link colors. You can still pass data in via attributes,
-              properties, or events, which keeps the boundary flexible without sacrificing predictability.
+              Use light DOM for SEO-heavy landing copy, editorial layouts, and anything your CMS should style with ordinary CSS.
+              Put interactive commerce widgets (grid, line items, payment UI) in shadow roots when you need strong encapsulation or embed the same bundle on third-party sites.
             </p>
             <p style="margin-top:1rem;margin-bottom:0">
-              This page adds extra sections so you can scroll through long-form content the same way you would on a production landing page:
-              social proof, FAQs, shipping notes, and newsletter capture — all co-located with the hero without breaking encapsulation.
+              This page adds extra sections so you can scroll through long-form content the same way you would on a production landing page.
             </p>
           </section>
 
@@ -289,7 +161,7 @@ class ShopHome extends HTMLElement {
               </div>
               <div class="card">
                 <h3>Product care</h3>
-                <p>Apparel: cold wash, line dry. Electronics: avoid moisture. Home goods: check materials before microwaving — standard retail copy fits neatly here.</p>
+                <p>Apparel: cold wash, line dry. Electronics: avoid moisture. Home goods: check materials before microwaving.</p>
               </div>
             </div>
           </section>
@@ -303,27 +175,27 @@ class ShopHome extends HTMLElement {
                 <footer>— Jordan M., early visitor</footer>
               </blockquote>
               <blockquote class="quote" style="margin-top:1rem">
-                “The shadow DOM explanation on the home page actually helped our team explain isolation to stakeholders.”
+                “Splitting light pages from shadow widgets made it obvious what hosts can theme vs what stays isolated.”
                 <footer>— Priya S., product designer</footer>
               </blockquote>
             </div>
             <div>
               <h2>FAQ</h2>
               <details>
-                <summary>Is my payment data stored?</summary>
-                <p>No. Checkout fields are a UI mock. Nothing is transmitted or stored except what your browser keeps in localStorage for the demo cart and account form.</p>
+                <summary>Which parts use shadow DOM?</summary>
+                <p>Product catalog (filter + grid + pager), cart line items, checkout form + summary, and account form. Everything else you see on those routes is light DOM.</p>
               </details>
               <details>
-                <summary>Can I embed this in WordPress or another CMS?</summary>
-                <p>Yes. Load the script bundle, drop <code>&lt;shop-root&gt;&lt;/shop-root&gt;</code> where you want the island, and ensure module paths resolve. You may need to adjust asset URLs.</p>
+                <summary>Can I embed this in WordPress?</summary>
+                <p>Yes. Load the script bundle, drop <code>&lt;shop-root&gt;&lt;/shop-root&gt;</code> where you want the app, and ensure module paths resolve.</p>
               </details>
               <details>
                 <summary>Where do product images come from?</summary>
-                <p>picsum.photos with deterministic seeds per SKU so thumbnails stay consistent between visits.</p>
+                <p>picsum.photos with deterministic seeds per SKU.</p>
               </details>
               <details>
-                <summary>How do I add even more catalog rows?</summary>
-                <p>Edit <code>js/data.js</code> — increase counts per type or append new categories, then reload. Filters derive from the dataset automatically.</p>
+                <summary>How do I add more SKUs?</summary>
+                <p>Edit <code>js/data.js</code> — filters derive from the dataset automatically.</p>
               </details>
             </div>
           </section>
@@ -333,7 +205,7 @@ class ShopHome extends HTMLElement {
             <p class="lead">Newsletter UI only — hook this form to your ESP when you go live.</p>
             <div class="news">
               <input type="email" placeholder="you@example.com" aria-label="Email for newsletter" />
-              <button type="button" id="cta-news">Notify me</button>
+              <button type="button" class="action" id="cta-news">Notify me</button>
             </div>
           </section>
 
@@ -350,15 +222,15 @@ class ShopHome extends HTMLElement {
 
           <section class="block cta-foot">
             <h2>Ready to browse?</h2>
-            <p>Open the products grid to explore filters, pagination, and add-to-cart — then scroll this page anytime you need a long-form landing layout reference.</p>
-            <button type="button" id="cta-products-2">Browse products</button>
+            <p>Open the products grid (shadow island) to explore filters, pagination, and add-to-cart.</p>
+            <button type="button" class="action" id="cta-products-2">Browse products</button>
           </section>
         </div>
 
         <aside>
           <div class="ad" style="margin-bottom: 1rem;">
             <strong>Sponsored</strong>
-            Upgrade your workflow with premium templates. Shadow boundaries keep ad slots isolated from host page CSS.
+            Upgrade your workflow with premium templates. These rail cards are light DOM — easy to replace with ad tags.
           </div>
           <div class="ad" style="margin-bottom: 1rem;">
             <strong>Seasonal sale</strong>
@@ -366,23 +238,120 @@ class ShopHome extends HTMLElement {
           </div>
           <div class="ad">
             <strong>Featured partner</strong>
-            Placeholder placement for co-marketing. Sticky positioning can be added in the shell if you want the rail to follow scroll.
+            Placeholder placement for co-marketing.
           </div>
         </aside>
       </div>
-    `;
-    const goProducts = () => {
-      window.location.hash = "products";
-    };
-    root.getElementById("cta-products").addEventListener("click", goProducts);
-    root.getElementById("cta-products-2").addEventListener("click", goProducts);
-    root.getElementById("cta-news").addEventListener("click", () => {
-      alert("Demo only — connect your email API to capture signups.");
-    });
-  }
+    </div>
+  `;
 }
 
-class ShopProducts extends HTMLElement {
+function wireHome(outlet) {
+  const goProducts = () => {
+    window.location.hash = "products";
+  };
+  outlet.querySelector("#cta-products")?.addEventListener("click", goProducts);
+  outlet.querySelector("#cta-products-2")?.addEventListener("click", goProducts);
+  outlet.querySelector("#cta-news")?.addEventListener("click", () => {
+    alert("Demo only — connect your email API to capture signups.");
+  });
+}
+
+function productsPageHtml() {
+  return `
+    <div class="page-products">
+      <p class="shadow-note">
+        Title and long copy below are <strong>light DOM</strong>. Only the <code>&lt;shop-catalog&gt;</code> widget (filter + product grid + pagination) is rendered inside a <strong>shadow root</strong>.
+      </p>
+      <h1>Products</h1>
+      <p class="lead">
+        ${PRODUCTS.length} items across ${TYPES.length} categories — filter and paginate (${PAGE_SIZE} per page), then add to your cart.
+        Scroll past the island for sizing notes and fulfillment copy (still light DOM).
+      </p>
+      <shop-catalog></shop-catalog>
+
+      <div class="below-fold">
+        <h2>Using this catalog</h2>
+        <p class="longcopy">
+          The catalog island keeps card styles private to that subtree. Change <code>PAGE_SIZE</code> in <code>js/app.js</code> if you want more rows per screen.
+        </p>
+
+        <h2>Category snapshots</h2>
+        <div class="tip-grid">
+          <div class="tip"><strong>Electronics</strong> Cables, deskside peripherals, and small gadgets — check voltage and regional plugs before checkout in a real store.</div>
+          <div class="tip"><strong>Apparel</strong> Unisex sizing in this demo. Use filters to focus on one department while you compare colors and materials.</div>
+          <div class="tip"><strong>Home</strong> Kitchen, décor, and everyday utilities. Bundle-friendly: add multiple lines to see the cart math update.</div>
+          <div class="tip"><strong>Beauty</strong> Topicals for demonstration only — always patch test real cosmetics and read ingredient lists.</div>
+          <div class="tip"><strong>Sports</strong> Training accessories with varied price points so totals look realistic when you test checkout.</div>
+        </div>
+
+        <h2>Fulfillment &amp; expectations</h2>
+        <p class="longcopy">
+          This project does not call a warehouse API. Treat shipping timelines, inventory counts, and backorder messages as static copy you can replace once you connect ERP or commerce APIs.
+        </p>
+
+        <div class="banner">
+          <strong>Prototyping tip:</strong> keep high-resolution photography in light DOM if you need shared <code>&lt;picture&gt;</code> art direction with the host — or keep imagery inside the catalog island for full encapsulation.
+        </div>
+
+        <h2>Accessibility checklist</h2>
+        <p class="longcopy">
+          When you extend the grid, preserve keyboard focus order: pagination buttons should stay adjacent to the list in the tab sequence, and filter controls should announce changes to screen readers via live regions if you fetch new pages from a server.
+        </p>
+
+        <h2>More placeholder detail</h2>
+        <p class="longcopy">
+          Loyalty points, gift messages, and subscription frequency are common upsells on product pages. This block mimics the vertical rhythm of those modules so you can eyeball spacing without touching cart logic.
+        </p>
+        <p class="longcopy" style="margin-top:1rem">
+          If you need infinite scroll instead of numbered pages, swap the pager inside <code>shop-catalog</code> for an IntersectionObserver that appends batches.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+function cartPageHtml() {
+  return `
+    <div class="page-cart">
+      <p class="shadow-note">
+        Headline and intro are <strong>light DOM</strong>. Line items, totals, and actions live inside <code>&lt;shop-cart-panel&gt;</code> (<strong>shadow root</strong>).
+      </p>
+      <h1>Cart</h1>
+      <p class="lead">Items you added on the Products page. Quantities update here and stay in localStorage.</p>
+      <shop-cart-panel></shop-cart-panel>
+    </div>
+  `;
+}
+
+function checkoutPageHtml() {
+  return `
+    <div class="page-checkout">
+      <p class="shadow-note">
+        Intro text is <strong>light DOM</strong>. Shipping, payment, and order summary are encapsulated in <code>&lt;shop-checkout-panel&gt;</code> (<strong>shadow root</strong>).
+      </p>
+      <h1>Checkout</h1>
+      <p class="lead">Shipping and payment placeholders — submit to complete the demo order and clear the cart.</p>
+      <shop-checkout-panel></shop-checkout-panel>
+    </div>
+  `;
+}
+
+function accountPageHtml() {
+  return `
+    <div class="page-account">
+      <p class="shadow-note">
+        Page title and disclaimer are <strong>light DOM</strong>. The profile form is <code>&lt;shop-account-panel&gt;</code> (<strong>shadow root</strong>).
+      </p>
+      <h1>Account</h1>
+      <p class="lead">Profile fields are stored locally for this demo (including password — do not use real secrets).</p>
+      <shop-account-panel></shop-account-panel>
+    </div>
+  `;
+}
+
+/** Product grid + filter + pagination — shadow DOM only. */
+class ShopCatalog extends HTMLElement {
   constructor() {
     super();
     this._filter = "all";
@@ -393,7 +362,7 @@ class ShopProducts extends HTMLElement {
     const root = this.attachShadow({ mode: "open" });
     this._root = root;
     root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
+      <style>${islandStyles()}</style>
       <style>
         .toolbar {
           display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
@@ -424,45 +393,7 @@ class ShopProducts extends HTMLElement {
           margin-top: 1.5rem; flex-wrap: wrap;
         }
         .pager span { color: var(--muted); font-size: 0.9rem; }
-        .below-fold {
-          margin-top: 2.5rem;
-          padding-top: 2rem;
-          border-top: 1px solid var(--border);
-        }
-        .below-fold h2 { margin-top: 1.75rem; }
-        .below-fold h2:first-child { margin-top: 0; }
-        .tip-grid {
-          display: grid;
-          gap: 1rem;
-          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-        }
-        .tip {
-          background: #f8fafc;
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem 1.1rem;
-          font-size: 0.92rem;
-          line-height: 1.55;
-          color: #334155;
-        }
-        .tip strong { display: block; color: #0f172a; margin-bottom: 0.35rem; }
-        .banner {
-          background: linear-gradient(90deg, #1e3a8a, #4338ca);
-          color: #e0e7ff;
-          border-radius: var(--radius);
-          padding: 1.25rem 1.5rem;
-          margin-top: 1.5rem;
-          line-height: 1.6;
-          font-size: 0.95rem;
-        }
-        .banner strong { color: #fff; }
-        .longcopy { color: var(--muted); line-height: 1.65; font-size: 0.95rem; max-width: 72ch; }
       </style>
-      <h1>Products</h1>
-      <p class="lead">
-        ${PRODUCTS.length} items across ${TYPES.length} categories — filter, paginate (${PAGE_SIZE} per page), and add to your cart.
-        Scroll past the grid for sizing notes, fulfillment copy, and care tips.
-      </p>
       <div class="toolbar">
         <div class="field">
           <label for="type-filter">Type</label>
@@ -471,53 +402,6 @@ class ShopProducts extends HTMLElement {
       </div>
       <div class="grid" id="grid"></div>
       <div class="pager" id="pager"></div>
-
-      <div class="below-fold">
-        <h2>Using this catalog</h2>
-        <p class="longcopy">
-          Pagination keeps the shadow tree lighter: only the current page of cards is in the DOM at once, which helps slower devices
-          while still giving you many SKUs to browse. Change <code style="background:#f1f5f9;padding:0.1rem 0.35rem;border-radius:6px;font-size:0.85em">PAGE_SIZE</code>
-          in <code style="background:#f1f5f9;padding:0.1rem 0.35rem;border-radius:6px;font-size:0.85em">app.js</code> if you want more rows per screen.
-        </p>
-
-        <h2>Category snapshots</h2>
-        <div class="tip-grid">
-          <div class="tip"><strong>Electronics</strong> Cables, deskside peripherals, and small gadgets — check voltage and regional plugs before checkout in a real store.</div>
-          <div class="tip"><strong>Apparel</strong> Unisex sizing in this demo. Use filters to focus on one department while you compare colors and materials.</div>
-          <div class="tip"><strong>Home</strong> Kitchen, décor, and everyday utilities. Bundle-friendly: add multiple lines to see the cart math update.</div>
-          <div class="tip"><strong>Beauty</strong> Topicals for demonstration only — always patch test real cosmetics and read ingredient lists.</div>
-          <div class="tip"><strong>Sports</strong> Training accessories with varied price points so totals look realistic when you test checkout.</div>
-        </div>
-
-        <h2>Fulfillment &amp; expectations</h2>
-        <p class="longcopy">
-          This project does not call a warehouse API. Treat shipping timelines, inventory counts, and backorder messages as static copy
-          you can replace once you connect ERP or commerce APIs. The long section exists so product and marketing stakeholders can scroll
-          through realistic density while reviewing the layout inside the shadow boundary.
-        </p>
-
-        <div class="banner">
-          <strong>Prototyping tip:</strong> keep high-resolution photography outside the shadow if you need <code>&lt;picture&gt;</code> art direction shared with the host —
-          or colocate assets here for full encapsulation. Either pattern works with web components.
-        </div>
-
-        <h2>Accessibility checklist</h2>
-        <p class="longcopy">
-          When you extend the grid, preserve keyboard focus order: pagination buttons should stay adjacent to the list in the tab sequence,
-          and filter controls should announce changes to screen readers via live regions if you fetch new pages from a server.
-        </p>
-
-        <h2>More placeholder detail</h2>
-        <p class="longcopy">
-          Loyalty points, gift messages, and subscription frequency are common upsells on product pages. This block mimics the vertical rhythm
-          of those modules so you can eyeball spacing, ad slots, and cross-sells without touching cart logic. Duplicate or trim these paragraphs
-          to match your brand voice.
-        </p>
-        <p class="longcopy" style="margin-top:1rem">
-          If you need infinite scroll instead of numbered pages, swap the pager for an IntersectionObserver that appends batches — the shadow
-          DOM pattern stays the same. Remember to virtualize rows if you render hundreds of nodes simultaneously.
-        </p>
-      </div>
     `;
 
     const sel = root.getElementById("type-filter");
@@ -592,12 +476,13 @@ class ShopProducts extends HTMLElement {
   }
 }
 
-class ShopCart extends HTMLElement {
+/** Cart table + totals — shadow DOM only. */
+class ShopCartPanel extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     this._root = root;
     root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
+      <style>${islandStyles()}</style>
       <style>
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
         th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
@@ -609,8 +494,6 @@ class ShopCart extends HTMLElement {
         .totals { margin-top: 1rem; text-align: right; font-size: 1.15rem; font-weight: 700; }
         .empty { padding: 2rem; text-align: center; color: var(--muted); background: #f8fafc; border-radius: var(--radius); border: 1px dashed var(--border); }
       </style>
-      <h1>Cart</h1>
-      <p class="lead">Items you added on the Products page. Quantities update here and stay in localStorage.</p>
       <div id="container"></div>
     `;
     this._paint();
@@ -675,11 +558,12 @@ class ShopCart extends HTMLElement {
   }
 }
 
-class ShopCheckout extends HTMLElement {
+/** Checkout form + summary — shadow DOM only. */
+class ShopCheckoutPanel extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
+      <style>${islandStyles()}</style>
       <style>
         .split {
           display: grid;
@@ -698,8 +582,6 @@ class ShopCheckout extends HTMLElement {
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; }
         .summary-total { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem; }
       </style>
-      <h1>Checkout</h1>
-      <p class="lead">Shipping and payment placeholders — submit to complete the demo order and clear the cart.</p>
       <div class="split">
         <form id="form" class="panel">
           <h2>Shipping</h2>
@@ -753,12 +635,13 @@ class ShopCheckout extends HTMLElement {
   }
 }
 
-class ShopAccount extends HTMLElement {
+/** Account form — shadow DOM only. */
+class ShopAccountPanel extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     const acc = getAccount();
     root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
+      <style>${islandStyles()}</style>
       <style>
         .panel {
           max-width: 480px;
@@ -770,8 +653,6 @@ class ShopAccount extends HTMLElement {
         }
         .hint { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
       </style>
-      <h1>Account</h1>
-      <p class="lead">Profile fields are stored locally for this demo (including password — do not use real secrets).</p>
       <form id="form" class="panel">
         <div class="field">
           <label for="firstName">First name</label>
@@ -807,66 +688,11 @@ class ShopAccount extends HTMLElement {
   }
 }
 
+/** App shell — light DOM only (no shadow root on the whole site). */
 class ShopRoot extends HTMLElement {
   connectedCallback() {
-    const root = this.attachShadow({ mode: "open" });
-    root.innerHTML = `
-      <style>${baseChromeStyles()}</style>
-      <style>
-        .shell {
-          min-height: 100vh;
-          background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 32%);
-          padding: 1rem clamp(1rem, 4vw, 2rem) 2rem;
-        }
-        header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1rem;
-          flex-wrap: wrap;
-          margin-bottom: 1.5rem;
-        }
-        .brand {
-          font-weight: 800;
-          font-size: 1.25rem;
-          letter-spacing: -0.03em;
-          color: #0f172a;
-          text-decoration: none;
-        }
-        .brand:hover { text-decoration: none; opacity: 0.85; }
-        nav {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.35rem 0.75rem;
-          align-items: center;
-        }
-        nav a {
-          padding: 0.35rem 0.65rem;
-          border-radius: 999px;
-          color: #334155;
-          font-weight: 600;
-          font-size: 0.9rem;
-          text-decoration: none;
-        }
-        nav a:hover { background: #e2e8f0; text-decoration: none; }
-        nav a.active { background: #dbeafe; color: #1e40af; }
-        .cart-badge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 1.25rem;
-          height: 1.25rem;
-          padding: 0 0.35rem;
-          margin-left: 0.25rem;
-          font-size: 0.7rem;
-          font-weight: 700;
-          background: var(--accent);
-          color: white;
-          border-radius: 999px;
-        }
-        main { max-width: 1100px; margin: 0 auto; }
-      </style>
-      <div class="shell">
+    this.innerHTML = `
+      <div class="shop-shell">
         <header>
           <a class="brand" href="#home">Shadow Shop</a>
           <nav id="nav">
@@ -877,13 +703,13 @@ class ShopRoot extends HTMLElement {
             <a href="#account" data-route="account">Account</a>
           </nav>
         </header>
-        <main id="outlet"></main>
+        <main class="page-outlet" id="outlet"></main>
       </div>
     `;
 
-    this._outlet = root.getElementById("outlet");
-    this._nav = root.getElementById("nav");
-    this._badge = root.getElementById("badge");
+    this._outlet = this.querySelector("#outlet");
+    this._nav = this.querySelector("#nav");
+    this._badge = this.querySelector("#badge");
 
     const updateBadge = () => {
       const n = getCart().reduce((s, l) => s + l.qty, 0);
@@ -896,25 +722,26 @@ class ShopRoot extends HTMLElement {
     const render = () => {
       const raw = (window.location.hash.replace(/^#/, "") || "home").toLowerCase();
       const route = VALID_ROUTES.includes(raw) ? raw : "home";
-      this._outlet.innerHTML = "";
-      let el;
+      const outlet = this._outlet;
+      outlet.innerHTML = "";
+
       switch (route) {
         case "products":
-          el = document.createElement("shop-products");
+          outlet.innerHTML = productsPageHtml();
           break;
         case "cart":
-          el = document.createElement("shop-cart");
+          outlet.innerHTML = cartPageHtml();
           break;
         case "checkout":
-          el = document.createElement("shop-checkout");
+          outlet.innerHTML = checkoutPageHtml();
           break;
         case "account":
-          el = document.createElement("shop-account");
+          outlet.innerHTML = accountPageHtml();
           break;
         default:
-          el = document.createElement("shop-home");
+          outlet.innerHTML = homePageHtml(PRODUCTS.length, TYPES.length);
+          wireHome(outlet);
       }
-      this._outlet.appendChild(el);
 
       this._nav.querySelectorAll("a[data-route]").forEach((a) => {
         a.classList.toggle("active", a.dataset.route === route);
@@ -926,9 +753,8 @@ class ShopRoot extends HTMLElement {
   }
 }
 
-customElements.define("shop-home", ShopHome);
-customElements.define("shop-products", ShopProducts);
-customElements.define("shop-cart", ShopCart);
-customElements.define("shop-checkout", ShopCheckout);
-customElements.define("shop-account", ShopAccount);
+customElements.define("shop-catalog", ShopCatalog);
+customElements.define("shop-cart-panel", ShopCartPanel);
+customElements.define("shop-checkout-panel", ShopCheckoutPanel);
+customElements.define("shop-account-panel", ShopAccountPanel);
 customElements.define("shop-root", ShopRoot);
