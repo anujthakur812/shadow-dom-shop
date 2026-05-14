@@ -38,7 +38,7 @@ function islandStyles() {
       --card: #ffffff;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --muted: #64748b;
+      --muted: #475569;
       --border: #e2e8f0;
       --radius: 12px;
       --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.06);
