@@ -22,12 +22,42 @@
   box-sizing: border-box;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 main.page-outlet a {
-  color: var(--accent);
-  text-decoration: none;
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 main.page-outlet a:hover {
-  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+main.page-outlet a:focus-visible,
+main.page-outlet button.action:focus-visible,
+main.page-outlet input:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
 }
 
 main.page-outlet h1 {
@@ -50,7 +80,8 @@ main.page-outlet button.action {
   cursor: pointer;
   border: none;
   border-radius: 10px;
-  padding: 0.55rem 1rem;
+  padding: 0.65rem 1.1rem;
+  min-height: 44px;
   background: var(--accent);
   color: white;
   font-weight: 600;
@@ -60,6 +91,30 @@ main.page-outlet button.action:hover {
 }
 
 /* ----- Shell (light DOM under shop-root) ----- */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+}
+.skip-link:focus {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.25rem;
+  background: #0f172a;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
 
 .shop-shell {
   min-height: 100vh;
@@ -86,6 +141,11 @@ main.page-outlet button.action:hover {
 .shop-shell .brand:hover {
   opacity: 0.85;
 }
+.shop-shell .brand:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
 
 .shop-shell nav {
   display: flex;
@@ -95,9 +155,12 @@ main.page-outlet button.action:hover {
 }
 
 .shop-shell nav a {
-  padding: 0.35rem 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 0.85rem;
   border-radius: 999px;
-  color: #334155;
+  color: #1e293b;
   font-weight: 600;
   font-size: 0.9rem;
   text-decoration: none;
@@ -105,9 +168,13 @@ main.page-outlet button.action:hover {
 .shop-shell nav a:hover {
   background: #e2e8f0;
 }
+.shop-shell nav a:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
 .shop-shell nav a.active {
-  background: #dbeafe;
-  color: #1e40af;
+  background: #bfdbfe;
+  color: #1e3a8a;
 }
 
 .shop-shell .cart-badge {
@@ -242,6 +309,8 @@ main.page-outlet button.action:hover {
   border-radius: var(--radius);
   padding: 1.25rem;
   box-shadow: var(--shadow);
+  list-style: none;
+  margin: 0;
 }
 .page-home .stat {
   text-align: center;
@@ -303,6 +372,11 @@ main.page-outlet button.action:hover {
 .page-home details summary {
   cursor: pointer;
   font-weight: 600;
+}
+.page-home details summary:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 .page-home details p {
   margin: 0.5rem 0 0;
