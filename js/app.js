@@ -42,31 +42,56 @@ function islandStyles() {
       --border: #e2e8f0;
       --radius: 12px;
       --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.06);
+      --focus-ring: 0 0 0 3px rgb(37 99 235 / 0.45);
     }
     * { box-sizing: border-box; }
-    a { color: var(--accent); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid #1d4ed8;
+      outline-offset: 2px;
+    }
     button {
       font: inherit;
       cursor: pointer;
       border: none;
       border-radius: 10px;
-      padding: 0.55rem 1rem;
+      padding: 0.65rem 1.1rem;
+      min-height: 44px;
       background: var(--accent);
       color: white;
       font-weight: 600;
     }
-    button:hover { background: var(--accent-hover); }
+    button:hover:not(:disabled) { background: var(--accent-hover); }
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
     button.secondary {
       background: #f1f5f9;
       color: #0f172a;
     }
-    button.secondary:hover { background: #e2e8f0; }
+    button.secondary:hover:not(:disabled) { background: #e2e8f0; }
     button.danger {
       background: #fef2f2;
       color: #b91c1c;
     }
-    button.danger:hover { background: #fee2e2; }
+    button.danger:hover:not(:disabled) { background: #fee2e2; }
     input, select, textarea {
       font: inherit;
       padding: 0.55rem 0.75rem;
@@ -74,6 +99,10 @@ function islandStyles() {
       border-radius: 10px;
       width: 100%;
       background: #fff;
+    }
+    input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
+      border-color: #b91c1c;
+      box-shadow: 0 0 0 1px #b91c1c;
     }
     label {
       display: block;
@@ -84,25 +113,46 @@ function islandStyles() {
     }
     .field { margin-bottom: 1rem; }
     h2 { font-size: 1.15rem; margin: 0 0 0.75rem; }
+    .error-summary {
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      border: 2px solid #b91c1c;
+      background: #fef2f2;
+      color: #7f1d1d;
+      font-size: 0.95rem;
+    }
+    .error-summary ul { margin: 0.35rem 0 0 1.1rem; padding: 0; }
+    .error-summary li { margin-bottom: 0.25rem; }
+    .form-status {
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      border: 2px solid #15803d;
+      background: #f0fdf4;
+      color: #14532d;
+      font-size: 0.95rem;
+    }
   `;
 }
 
 function homePageHtml(nProducts, nTypes) {
   return `
     <div class="page-home">
+      <p id="home-status" class="visually-hidden" role="status" aria-live="polite"></p>
       <p class="shadow-note">
         Shell + sections below live in the <strong>light DOM</strong> (normal document tree). Visit <a href="#products">Products</a> to see the catalog grid inside its own <strong>shadow root</strong>.
       </p>
       <div class="layout">
         <div>
           <section class="hero">
-            <span class="badge">Shadow DOM storefront</span>
+            <span class="badge" aria-hidden="true">Shadow DOM storefront</span>
             <h1>Light DOM pages, shadow DOM widgets</h1>
             <p>
               Browse a larger catalog with filters and pagination, build a cart that persists locally, walk through checkout,
               and manage an account — interactive islands (catalog, cart, checkout, account form) use shadow DOM; this landing copy stays in the light tree so host-page CSS can theme it like any normal page.
             </p>
-            <button type="button" class="action" id="cta-products">Browse ${nProducts} products</button>
+            <button type="button" class="action" id="cta-products" aria-label="Browse all ${nProducts} products in the catalog">Browse ${nProducts} products</button>
           </section>
 
           <section class="block">
@@ -110,12 +160,12 @@ function homePageHtml(nProducts, nTypes) {
             <p class="lead">
               Shadow Shop is a static demo you can extend: swap images, wire APIs, or embed this shell inside a host page without colliding with global styles on encapsulated widgets.
             </p>
-            <div class="stats" aria-label="Store highlights">
-              <div class="stat"><b>${nProducts}</b><span>demo SKUs</span></div>
-              <div class="stat"><b>${nTypes}</b><span>categories</span></div>
-              <div class="stat"><b>24/7</b><span>imaginary support</span></div>
-              <div class="stat"><b>0</b><span>servers required</span></div>
-            </div>
+            <ul class="stats" aria-label="Store highlights">
+              <li class="stat"><b>${nProducts}</b><span>demo SKUs</span></li>
+              <li class="stat"><b>${nTypes}</b><span>categories</span></li>
+              <li class="stat"><b>24/7</b><span>imaginary support</span></li>
+              <li class="stat"><b>0</b><span>servers required</span></li>
+            </ul>
           </section>
 
           <section class="block">
@@ -202,10 +252,11 @@ function homePageHtml(nProducts, nTypes) {
 
           <section class="block">
             <h2>Stay in the loop</h2>
-            <p class="lead">Newsletter UI only — hook this form to your ESP when you go live.</p>
-            <div class="news">
-              <input type="email" placeholder="you@example.com" aria-label="Email for newsletter" />
-              <button type="button" class="action" id="cta-news">Notify me</button>
+            <p class="lead" id="newsletter-desc">Newsletter UI only — hook this form to your ESP when you go live.</p>
+            <div class="news" role="group" aria-labelledby="newsletter-desc">
+              <label for="newsletter-email" class="visually-hidden">Email address</label>
+              <input type="email" id="newsletter-email" placeholder="you@example.com" autocomplete="email" />
+              <button type="button" class="action" id="cta-news" aria-describedby="newsletter-desc">Notify me</button>
             </div>
           </section>
 
@@ -223,7 +274,7 @@ function homePageHtml(nProducts, nTypes) {
           <section class="block cta-foot">
             <h2>Ready to browse?</h2>
             <p>Open the products grid (shadow island) to explore filters, pagination, and add-to-cart.</p>
-            <button type="button" class="action" id="cta-products-2">Browse products</button>
+            <button type="button" class="action" id="cta-products-2" aria-label="Open the product catalog">Browse products</button>
           </section>
         </div>
 
@@ -253,7 +304,10 @@ function wireHome(outlet) {
   outlet.querySelector("#cta-products")?.addEventListener("click", goProducts);
   outlet.querySelector("#cta-products-2")?.addEventListener("click", goProducts);
   outlet.querySelector("#cta-news")?.addEventListener("click", () => {
-    alert("Demo only — connect your email API to capture signups.");
+    const status = outlet.querySelector("#home-status");
+    if (status) {
+      status.textContent = "This is a demo. Connect your email service to capture signups.";
+    }
   });
 }
 
@@ -394,14 +448,17 @@ class ShopCatalog extends HTMLElement {
         }
         .pager span { color: var(--muted); font-size: 0.9rem; }
       </style>
-      <div class="toolbar">
-        <div class="field">
-          <label for="type-filter">Type</label>
-          <select id="type-filter"></select>
+      <section aria-labelledby="catalog-heading">
+        <h2 id="catalog-heading" class="visually-hidden">Product catalog</h2>
+        <div class="toolbar">
+          <div class="field">
+            <label for="type-filter">Product type</label>
+            <select id="type-filter"></select>
+          </div>
         </div>
-      </div>
-      <div class="grid" id="grid"></div>
-      <div class="pager" id="pager"></div>
+        <div class="grid" id="grid" role="list"></div>
+        <nav class="pager" id="pager" aria-label="Pagination"></nav>
+      </section>
     `;
 
     const sel = root.getElementById("type-filter");
@@ -438,13 +495,13 @@ class ShopCatalog extends HTMLElement {
     grid.innerHTML = slice
       .map(
         (p) => `
-      <article data-id="${p.id}">
-        <img src="${escapeHtml(p.image)}" alt="" width="480" height="360" loading="lazy" />
+      <article data-id="${p.id}" role="listitem">
+        <img src="${escapeHtml(p.image)}" alt="${escapeAttr(p.name)}" width="480" height="360" loading="lazy" />
         <div class="body">
           <div class="meta">${escapeHtml(p.type)}</div>
           <div class="title">${escapeHtml(p.name)}</div>
           <div class="price">$${p.price.toFixed(2)}</div>
-          <button type="button" class="add" style="margin-top:0.75rem;width:100%">Add to cart</button>
+          <button type="button" class="add" style="margin-top:0.75rem;width:100%" aria-label="Add ${escapeAttr(p.name)} to cart">Add to cart</button>
         </div>
       </article>
     `
@@ -457,9 +514,9 @@ class ShopCatalog extends HTMLElement {
 
     const pager = root.getElementById("pager");
     pager.innerHTML = `
-      <button type="button" class="secondary" id="prev" ${this._page <= 1 ? "disabled" : ""}>Previous</button>
-      <span>Page ${this._page} of ${totalPages}</span>
-      <button type="button" class="secondary" id="next" ${this._page >= totalPages ? "disabled" : ""}>Next</button>
+      <button type="button" class="secondary" id="prev" aria-label="Go to previous page" ${this._page <= 1 ? "disabled" : ""}>Previous</button>
+      <span id="pagination-status" aria-live="polite" aria-atomic="true">Page ${this._page} of ${totalPages}</span>
+      <button type="button" class="secondary" id="next" aria-label="Go to next page" ${this._page >= totalPages ? "disabled" : ""}>Next</button>
     `;
     const prev = pager.querySelector("#prev");
     const next = pager.querySelector("#next");
@@ -494,6 +551,7 @@ class ShopCartPanel extends HTMLElement {
         .totals { margin-top: 1rem; text-align: right; font-size: 1.15rem; font-weight: 700; }
         .empty { padding: 2rem; text-align: center; color: var(--muted); background: #f8fafc; border-radius: var(--radius); border: 1px dashed var(--border); }
       </style>
+      <div id="cart-live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
       <div id="container"></div>
     `;
     this._paint();
@@ -503,35 +561,43 @@ class ShopCartPanel extends HTMLElement {
   _paint() {
     const cart = getCart();
     const el = this._root.getElementById("container");
+    const live = this._root.getElementById("cart-live");
+    const announce = (msg) => {
+      if (live) live.textContent = msg;
+    };
     if (cart.length === 0) {
-      el.innerHTML = `<div class="empty">Your cart is empty. <a href="#products">Browse products</a>.</div>`;
+      el.innerHTML = `<div class="empty" role="status">Your cart is empty. <a href="#products">Browse products</a>.</div>`;
+      announce("Your cart is empty.");
       return;
     }
+    const nItems = cart.reduce((s, l) => s + l.qty, 0);
     el.innerHTML = `
-      <table>
-        <thead><tr><th></th><th>Product</th><th>Price</th><th>Qty</th><th></th></tr></thead>
+      <table aria-label="Shopping cart line items">
+        <caption class="visually-hidden">Items in your cart with quantity and price</caption>
+        <thead><tr><th scope="col" class="visually-hidden">Image</th><th scope="col">Product</th><th scope="col">Price</th><th scope="col">Quantity</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
-      <div class="totals" id="total"></div>
-      <p style="margin-top:1rem"><button type="button" id="checkout">Proceed to checkout</button></p>
+      <div class="totals" id="total" aria-live="polite"></div>
+      <p style="margin-top:1rem"><button type="button" id="checkout" aria-label="Proceed to checkout with current cart">Proceed to checkout</button></p>
     `;
     const tbody = el.querySelector("#tbody");
     tbody.innerHTML = cart
       .map(
         (l) => `
       <tr data-id="${l.id}">
-        <td><img class="thumb" src="${escapeHtml(l.image)}" alt="" /></td>
-        <td>
+        <td><img class="thumb" src="${escapeHtml(l.image)}" alt="" role="presentation" /></td>
+        <th scope="row">
           <div style="font-weight:600">${escapeHtml(l.name)}</div>
           <div style="font-size:0.8rem;color:var(--muted);text-transform:capitalize">${escapeHtml(l.type)}</div>
-        </td>
+        </th>
         <td>$${l.price.toFixed(2)}</td>
         <td>
           <div class="qty">
-            <input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity for ${escapeHtml(l.name)}" />
+            <label for="qty-${l.id}" class="visually-hidden">Quantity for ${escapeAttr(l.name)}</label>
+            <input id="qty-${l.id}" type="number" min="1" max="99" value="${l.qty}" />
           </div>
         </td>
-        <td><button type="button" class="danger remove">Remove</button></td>
+        <td><button type="button" class="danger remove" aria-label="Remove ${escapeAttr(l.name)} from cart">Remove</button></td>
       </tr>
     `
       )
@@ -552,6 +618,7 @@ class ShopCartPanel extends HTMLElement {
     });
 
     el.querySelector("#total").textContent = `Total: $${cartTotal(cart).toFixed(2)}`;
+    announce(`Cart updated. ${nItems} items. Total ${cartTotal(cart).toFixed(2)} dollars.`);
     el.querySelector("#checkout").addEventListener("click", () => {
       window.location.hash = "checkout";
     });
@@ -579,10 +646,17 @@ class ShopCheckoutPanel extends HTMLElement {
           padding: 1.25rem;
           box-shadow: var(--shadow);
         }
+        fieldset {
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem 1.1rem 1.1rem;
+          margin: 0 0 1.25rem;
+        }
+        legend { font-weight: 700; padding: 0 0.35rem; }
         .payment-list {
           display: grid;
           gap: 0.6rem;
-          margin-bottom: 1rem;
+          margin-bottom: 0.5rem;
         }
         .payment-item {
           display: flex;
@@ -595,6 +669,8 @@ class ShopCheckoutPanel extends HTMLElement {
         }
         .payment-item input[type="radio"] {
           width: auto;
+          min-width: 1.25rem;
+          min-height: 1.25rem;
           margin-top: 0.2rem;
         }
         .payment-item .label-text {
@@ -609,7 +685,8 @@ class ShopCheckoutPanel extends HTMLElement {
           line-height: 1.45;
         }
         .method-fields {
-          margin-bottom: 1rem;
+          margin-top: 0.75rem;
+          margin-bottom: 0;
           padding: 0.85rem;
           border: 1px dashed var(--border);
           border-radius: 10px;
@@ -624,22 +701,35 @@ class ShopCheckoutPanel extends HTMLElement {
         }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; }
         .summary-total { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem; }
+        .check-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+        .check-row input { width: auto; min-width: 1.25rem; min-height: 1.25rem; margin-top: 0.15rem; }
+        .check-row label { margin: 0; font-weight: 600; }
       </style>
       <div class="split">
         <form id="form" class="panel">
-          <h2>Shipping</h2>
-          <div class="field"><label for="full">Full name</label><input id="full" name="full" required autocomplete="name" /></div>
-          <div class="field"><label for="line1">Address line 1</label><input id="line1" name="line1" required autocomplete="address-line1" /></div>
-          <div class="field"><label for="line2">Address line 2</label><input id="line2" name="line2" autocomplete="address-line2" /></div>
-          <div class="field"><label for="city">City</label><input id="city" name="city" required autocomplete="address-level2" /></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-            <div class="field"><label for="state">State</label><input id="state" name="state" required autocomplete="address-level1" /></div>
-            <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
-          </div>
-          <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" /></div>
+          <div id="form-status" class="form-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
+          <div id="error-summary" class="error-summary" role="alert" aria-live="assertive" tabindex="-1" hidden></div>
 
-          <h2 style="margin-top:1rem">Payment</h2>
-          <div class="payment-list">
+          <fieldset>
+            <legend>Shipping address</legend>
+            <div class="field"><label for="full">Full name</label><input id="full" name="full" required autocomplete="name" /></div>
+            <div class="field"><label for="line1">Address line 1</label><input id="line1" name="line1" required autocomplete="address-line1" /></div>
+            <div class="field"><label for="line2">Address line 2 <span class="mini" style="display:inline;font-weight:400">(optional)</span></label><input id="line2" name="line2" autocomplete="address-line2" /></div>
+            <div class="field"><label for="city">City</label><input id="city" name="city" required autocomplete="address-level2" /></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="field"><label for="state">State</label><input id="state" name="state" required autocomplete="address-level1" /></div>
+              <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
+            </div>
+            <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" /></div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Payment method</legend>
+            <div class="payment-list" role="radiogroup" aria-label="Choose how to pay">
             <label class="payment-item">
               <input type="radio" name="paymentMethod" value="upi" checked />
               <span>
@@ -675,56 +765,61 @@ class ShopCheckoutPanel extends HTMLElement {
                 <span class="hint">Choose your bank and continue to secure login.</span>
               </span>
             </label>
-          </div>
-
-          <div class="method-fields" data-method="upi">
-            <div class="field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" placeholder="name@bank" /></div>
-            <p class="mini">A collect request will be sent to your UPI app.</p>
-          </div>
-
-          <div class="method-fields" data-method="card" hidden>
-            <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-              <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
-              <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" autocomplete="cc-csc" /></div>
             </div>
-          </div>
 
-          <div class="method-fields" data-method="cod" hidden>
-            <div class="field">
-              <label for="codNote">Delivery instruction</label>
-              <input id="codNote" name="codNote" placeholder="Landmark, gate code, preferred slot" />
+            <div class="method-fields" data-method="upi">
+              <div class="field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" placeholder="name@bank" autocomplete="off" /></div>
+              <p class="mini">A collect request will be sent to your UPI app.</p>
             </div>
-            <p class="mini">Keep exact change ready when possible for faster handoff.</p>
-          </div>
 
-          <div class="method-fields" data-method="wallet" hidden>
-            <div class="field"><label for="walletId">Wallet ID / mobile</label><input id="walletId" name="walletId" inputmode="tel" /></div>
-            <p class="mini">Available balance and OTP verification will be shown in real integrations.</p>
-          </div>
-
-          <div class="method-fields" data-method="netbanking" hidden>
-            <div class="field">
-              <label for="bankName">Select bank</label>
-              <select id="bankName" name="bankName">
-                <option value="">Choose bank</option>
-                <option value="sbi">State Bank of India</option>
-                <option value="hdfc">HDFC Bank</option>
-                <option value="icici">ICICI Bank</option>
-                <option value="axis">Axis Bank</option>
-                <option value="kotak">Kotak Mahindra Bank</option>
-              </select>
+            <div class="method-fields" data-method="card" hidden>
+              <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+                <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
+                <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" /></div>
+              </div>
             </div>
-          </div>
 
-          <h2 style="margin-top:1rem">Billing extras</h2>
-          <div class="field">
-            <label><input type="checkbox" name="sameAddress" checked style="width:auto;margin-right:0.5rem;" /> Billing address same as shipping</label>
-          </div>
-          <div class="field"><label for="notes">Order note</label><textarea id="notes" name="notes" rows="3" placeholder="Any special instructions for packing or delivery"></textarea></div>
+            <div class="method-fields" data-method="cod" hidden>
+              <div class="field">
+                <label for="codNote">Delivery instruction <span class="mini" style="display:inline;font-weight:400">(optional)</span></label>
+                <input id="codNote" name="codNote" placeholder="Landmark, gate code, preferred slot" />
+              </div>
+              <p class="mini">Keep exact change ready when possible for faster handoff.</p>
+            </div>
+
+            <div class="method-fields" data-method="wallet" hidden>
+              <div class="field"><label for="walletId">Wallet ID / mobile</label><input id="walletId" name="walletId" inputmode="tel" autocomplete="off" /></div>
+              <p class="mini">Available balance and OTP verification will be shown in real integrations.</p>
+            </div>
+
+            <div class="method-fields" data-method="netbanking" hidden>
+              <div class="field">
+                <label for="bankName">Select bank</label>
+                <select id="bankName" name="bankName">
+                  <option value="">Choose bank</option>
+                  <option value="sbi">State Bank of India</option>
+                  <option value="hdfc">HDFC Bank</option>
+                  <option value="icici">ICICI Bank</option>
+                  <option value="axis">Axis Bank</option>
+                  <option value="kotak">Kotak Mahindra Bank</option>
+                </select>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Order options</legend>
+            <div class="field check-row">
+              <input type="checkbox" id="sameAddress" name="sameAddress" checked />
+              <label for="sameAddress">Billing address same as shipping</label>
+            </div>
+            <div class="field"><label for="notes">Order note <span class="mini" style="display:inline;font-weight:400">(optional)</span></label><textarea id="notes" name="notes" rows="3" placeholder="Any special instructions for packing or delivery"></textarea></div>
+          </fieldset>
+
           <button type="submit">Place order</button>
         </form>
-        <div class="panel" id="summary-panel"></div>
+        <aside class="panel" id="summary-panel" aria-label="Order summary"></aside>
       </div>
     `;
 
@@ -738,6 +833,33 @@ class ShopCheckoutPanel extends HTMLElement {
     };
     methodInputs.forEach((input) => input.addEventListener("change", syncMethodSections));
     syncMethodSections();
+
+    const errEl = root.getElementById("error-summary");
+    const okEl = root.getElementById("form-status");
+
+    const clearMessages = () => {
+      errEl.hidden = true;
+      errEl.innerHTML = "";
+      okEl.hidden = true;
+      okEl.textContent = "";
+      root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
+    };
+
+    const showErrors = (messages) => {
+      clearMessages();
+      errEl.hidden = false;
+      const p = document.createElement("p");
+      p.textContent = "Please correct the following:";
+      errEl.appendChild(p);
+      const ul = document.createElement("ul");
+      messages.forEach((msg) => {
+        const li = document.createElement("li");
+        li.textContent = msg;
+        ul.appendChild(li);
+      });
+      errEl.appendChild(ul);
+      errEl.focus();
+    };
 
     const paintSummary = () => {
       const cart = getCart();
@@ -760,16 +882,92 @@ class ShopCheckoutPanel extends HTMLElement {
     paintSummary();
     window.addEventListener("shadow-shop-cart", paintSummary);
 
+    const digitsOnly = (s) => String(s || "").replace(/\D/g, "");
+
     root.getElementById("form").addEventListener("submit", (e) => {
       e.preventDefault();
+      clearMessages();
+      const form = root.getElementById("form");
+
       if (getCart().length === 0) {
-        alert("Your cart is empty.");
+        showErrors(["Your cart is empty. Add products before checking out."]);
         return;
       }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
       const method = root.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
+      const errors = [];
+      const mark = (el) => el?.setAttribute("aria-invalid", "true");
+
+      if (method === "upi") {
+        const upi = root.querySelector("#upiId");
+        const v = upi.value.trim();
+        if (!v) {
+          errors.push("Enter your UPI ID.");
+          mark(upi);
+        } else if (!/^[\w.\-]{2,}@[\w.\-]{2,}$/i.test(v)) {
+          errors.push("UPI ID should look like name@bank.");
+          mark(upi);
+        }
+      } else if (method === "card") {
+        const card = root.querySelector("#card");
+        const exp = root.querySelector("#exp");
+        const cvc = root.querySelector("#cvc");
+        const cn = digitsOnly(card.value);
+        if (cn.length < 13) {
+          errors.push("Enter a valid card number.");
+          mark(card);
+        }
+        if (!exp.value.trim()) {
+          errors.push("Enter the card expiry date.");
+          mark(exp);
+        }
+        const cvcN = digitsOnly(cvc.value);
+        if (cvcN.length < 3) {
+          errors.push("Enter the card security code (CVC).");
+          mark(cvc);
+        }
+      } else if (method === "wallet") {
+        const w = root.querySelector("#walletId");
+        if (!w.value.trim()) {
+          errors.push("Enter your wallet ID or mobile number.");
+          mark(w);
+        }
+      } else if (method === "netbanking") {
+        const bank = root.querySelector("#bankName");
+        if (!bank.value) {
+          errors.push("Select your bank for net banking.");
+          mark(bank);
+        }
+      }
+
+      if (errors.length) {
+        showErrors(errors);
+        return;
+      }
+
+      const methodLabel =
+        method === "upi"
+          ? "UPI"
+          : method === "card"
+            ? "card"
+            : method === "cod"
+              ? "cash on delivery"
+              : method === "wallet"
+                ? "wallet"
+                : "net banking";
+
+      okEl.hidden = false;
+      okEl.textContent = `Order placed successfully. Payment: ${methodLabel}. Redirecting…`;
+      okEl.focus();
       saveCart([]);
-      alert(`Thanks — demo order placed with ${method.toUpperCase()}. Cart cleared.`);
-      window.location.hash = "home";
+      setTimeout(() => {
+        window.location.hash = "home";
+      }, 900);
     });
   }
 }
@@ -792,37 +990,53 @@ class ShopAccountPanel extends HTMLElement {
         }
         .hint { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
       </style>
-      <form id="form" class="panel">
+      <div id="acct-status" class="form-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
+      <form id="form" class="panel" aria-describedby="acct-hint">
+        <p id="acct-hint" class="hint" style="margin-top:0;margin-bottom:1rem">Demo only — credentials are stored in plain text in localStorage. Do not use real passwords.</p>
         <div class="field">
           <label for="firstName">First name</label>
-          <input id="firstName" name="firstName" autocomplete="given-name" value="${escapeAttr(acc.firstName)}" />
+          <input id="firstName" name="firstName" required autocomplete="given-name" value="${escapeAttr(acc.firstName)}" />
         </div>
         <div class="field">
           <label for="lastName">Last name</label>
-          <input id="lastName" name="lastName" autocomplete="family-name" value="${escapeAttr(acc.lastName)}" />
+          <input id="lastName" name="lastName" required autocomplete="family-name" value="${escapeAttr(acc.lastName)}" />
         </div>
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" name="email" type="email" autocomplete="email" value="${escapeAttr(acc.email)}" />
+          <input id="email" name="email" type="email" required autocomplete="email" value="${escapeAttr(acc.email)}" />
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" autocomplete="new-password" value="${escapeAttr(acc.password)}" />
-          <div class="hint">Demo only — stored in plain text in localStorage.</div>
+          <input id="password" name="password" type="password" required autocomplete="new-password" value="${escapeAttr(acc.password)}" />
+          <div class="hint">For demos only; not a secure store.</div>
         </div>
         <button type="submit">Save profile</button>
       </form>
     `;
-    root.getElementById("form").addEventListener("submit", (e) => {
+    const form = root.getElementById("form");
+    const okBox = root.getElementById("acct-status");
+
+    form.addEventListener("submit", (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target);
+      okBox.hidden = true;
+      okBox.textContent = "";
+      root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const fd = new FormData(form);
       saveAccount({
         firstName: String(fd.get("firstName") || ""),
         lastName: String(fd.get("lastName") || ""),
         email: String(fd.get("email") || ""),
         password: String(fd.get("password") || ""),
       });
-      alert("Profile saved.");
+      okBox.hidden = false;
+      okBox.textContent = "Profile saved.";
+      okBox.focus();
     });
   }
 }
@@ -831,29 +1045,40 @@ class ShopAccountPanel extends HTMLElement {
 class ShopRoot extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
+      <a href="#main-content" class="skip-link">Skip to main content</a>
       <div class="shop-shell">
-        <header>
-          <a class="brand" href="#home">Shadow Shop</a>
-          <nav id="nav">
+        <header role="banner">
+          <a class="brand" href="#home" aria-label="Shadow Shop home">Shadow Shop</a>
+          <nav id="nav" role="navigation" aria-label="Primary">
             <a href="#home" data-route="home">Home</a>
             <a href="#products" data-route="products">Products</a>
-            <a href="#cart" data-route="cart">Cart<span class="cart-badge" id="badge" hidden>0</span></a>
+            <a href="#cart" data-route="cart" id="nav-cart-link">Cart<span class="cart-badge" id="badge" hidden aria-hidden="true">0</span></a>
             <a href="#checkout" data-route="checkout">Checkout</a>
             <a href="#account" data-route="account">Account</a>
           </nav>
         </header>
-        <main class="page-outlet" id="outlet"></main>
+        <main class="page-outlet" id="main-content" tabindex="-1"></main>
       </div>
     `;
 
-    this._outlet = this.querySelector("#outlet");
+    this._outlet = this.querySelector("#main-content");
     this._nav = this.querySelector("#nav");
     this._badge = this.querySelector("#badge");
+    this._cartLink = this.querySelector("#nav-cart-link");
+
+    const skip = this.querySelector(".skip-link");
+    skip?.addEventListener("click", () => {
+      queueMicrotask(() => this._outlet?.focus());
+    });
 
     const updateBadge = () => {
       const n = getCart().reduce((s, l) => s + l.qty, 0);
       this._badge.textContent = String(n);
       this._badge.hidden = n === 0;
+      this._badge.setAttribute("aria-hidden", "true");
+      if (this._cartLink) {
+        this._cartLink.setAttribute("aria-label", n === 0 ? "Shopping cart, empty" : `Shopping cart, ${n} items`);
+      }
     };
     updateBadge();
     window.addEventListener("shadow-shop-cart", updateBadge);
@@ -861,6 +1086,8 @@ class ShopRoot extends HTMLElement {
     const render = () => {
       const raw = (window.location.hash.replace(/^#/, "") || "home").toLowerCase();
       const route = VALID_ROUTES.includes(raw) ? raw : "home";
+      const titles = { home: "Home", products: "Products", cart: "Cart", checkout: "Checkout", account: "Account" };
+      document.title = route === "home" ? "Shadow Shop" : `Shadow Shop — ${titles[route] || "Home"}`;
       const outlet = this._outlet;
       outlet.innerHTML = "";
 
@@ -883,7 +1110,10 @@ class ShopRoot extends HTMLElement {
       }
 
       this._nav.querySelectorAll("a[data-route]").forEach((a) => {
-        a.classList.toggle("active", a.dataset.route === route);
+        const on = a.dataset.route === route;
+        a.classList.toggle("active", on);
+        if (on) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
       });
     };
 
