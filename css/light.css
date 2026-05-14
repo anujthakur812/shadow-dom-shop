@@ -8,7 +8,8 @@
   --card: #ffffff;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
-  --muted: #64748b;
+  /* Slate-600: ~7:1 on white; passes AA for normal text on light backgrounds */
+  --muted: #475569;
   --border: #e2e8f0;
   --radius: 12px;
   --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.06);
@@ -70,7 +71,7 @@ main.page-outlet h2 {
   margin: 0 0 0.75rem;
 }
 main.page-outlet p.lead {
-  color: var(--muted);
+  color: #334155;
   margin: 0 0 1.25rem;
   line-height: 1.6;
 }
@@ -199,13 +200,23 @@ main.page-outlet button.action:hover {
 
 .shadow-note {
   font-size: 0.85rem;
-  color: var(--muted);
+  color: #1e293b;
   background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  border: 1px solid #93c5fd;
   border-radius: 10px;
   padding: 0.65rem 1rem;
   margin-bottom: 1.25rem;
   line-height: 1.5;
+}
+
+.shadow-note strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+main.page-outlet .shadow-note a {
+  color: #1e3a8a;
+  font-weight: 600;
 }
 
 .shadow-note code {
@@ -230,18 +241,18 @@ main.page-outlet button.action:hover {
 }
 
 .page-home .hero {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
-  color: white;
+  background: linear-gradient(135deg, #172554 0%, #1e3a8a 42%, #1d4ed8 100%);
+  color: #ffffff;
   padding: 2rem;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
 .page-home .hero h1 {
-  color: white;
+  color: #ffffff;
   font-size: 2rem;
 }
 .page-home .hero p {
-  opacity: 0.95;
+  color: #f1f5f9;
   margin: 0 0 1rem;
   line-height: 1.65;
 }
