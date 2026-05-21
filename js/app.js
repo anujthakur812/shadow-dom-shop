@@ -427,8 +427,11 @@ class ShopCatalog extends HTMLElement {
           display: grid;
           gap: 1rem;
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+          list-style: none;
+          margin: 0;
+          padding: 0;
         }
-        article {
+        .grid > li {
           background: var(--card);
           border: 1px solid var(--border);
           border-radius: var(--radius);
@@ -437,7 +440,7 @@ class ShopCatalog extends HTMLElement {
           display: flex;
           flex-direction: column;
         }
-        article img { width: 100%; height: 160px; object-fit: cover; display: block; background: #f1f5f9; }
+        .grid > li img { width: 100%; height: 160px; object-fit: cover; display: block; background: #f1f5f9; }
         .body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
         .meta { font-size: 0.8rem; color: var(--muted); text-transform: capitalize; margin-bottom: 0.25rem; }
         .title { font-weight: 700; margin: 0 0 0.5rem; font-size: 1.05rem; }
@@ -456,7 +459,7 @@ class ShopCatalog extends HTMLElement {
             <select id="type-filter"></select>
           </div>
         </div>
-        <div class="grid" id="grid" role="list"></div>
+        <ul class="grid" id="grid"></ul>
         <nav class="pager" id="pager" aria-label="Pagination"></nav>
       </section>
     `;
@@ -495,7 +498,7 @@ class ShopCatalog extends HTMLElement {
     grid.innerHTML = slice
       .map(
         (p) => `
-      <article data-id="${p.id}" role="listitem">
+      <li data-id="${p.id}">
         <img src="${escapeHtml(p.image)}" alt="${escapeAttr(p.name)}" width="480" height="360" loading="lazy" />
         <div class="body">
           <div class="meta">${escapeHtml(p.type)}</div>
@@ -503,7 +506,7 @@ class ShopCatalog extends HTMLElement {
           <div class="price">$${p.price.toFixed(2)}</div>
           <button type="button" class="add" style="margin-top:0.75rem;width:100%" aria-label="Add ${escapeAttr(p.name)} to cart">Add to cart</button>
         </div>
-      </article>
+      </li>
     `
       )
       .join("");
