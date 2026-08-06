@@ -1,4 +1,4 @@
-import { PRODUCTS, PRODUCT_TYPES, TYPES } from "./data.js";
+import { PRODUCTS, PRODUCT_TYPES } from "./data.js";
 import {
   getCart,
   saveCart,
@@ -10,7 +10,7 @@ import {
   saveAccount,
 } from "./store.js";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 6;
 
 function escapeHtml(s) {
   const div = document.createElement("div");
@@ -27,71 +27,46 @@ function escapeAttr(s) {
 
 const VALID_ROUTES = ["home", "products", "cart", "checkout", "account"];
 
-/** Scoped CSS for shadow-DOM islands only (catalog grid, cart table, forms). */
-function islandStyles() {
+function baseChromeStyles() {
   return `
     :host {
       display: block;
       font-family: "DM Sans", system-ui, sans-serif;
+      font-optical-sizing: auto;
       color: #0f172a;
       --bg: #f8fafc;
       --card: #ffffff;
       --accent: #2563eb;
       --accent-hover: #1d4ed8;
-      --muted: #475569;
+      --muted: #64748b;
       --border: #e2e8f0;
       --radius: 12px;
       --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 8px 24px rgb(15 23 42 / 0.06);
-      --focus-ring: 0 0 0 3px rgb(37 99 235 / 0.45);
     }
     * { box-sizing: border-box; }
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-    a {
-      color: var(--accent);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-    a:hover { text-decoration-thickness: 2px; }
-    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-      outline: 3px solid #1d4ed8;
-      outline-offset: 2px;
-    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
     button {
       font: inherit;
       cursor: pointer;
       border: none;
       border-radius: 10px;
-      padding: 0.65rem 1.1rem;
-      min-height: 44px;
+      padding: 0.55rem 1rem;
       background: var(--accent);
       color: white;
       font-weight: 600;
     }
-    button:hover:not(:disabled) { background: var(--accent-hover); }
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
+    button:hover { background: var(--accent-hover); }
     button.secondary {
       background: #f1f5f9;
       color: #0f172a;
     }
-    button.secondary:hover:not(:disabled) { background: #e2e8f0; }
+    button.secondary:hover { background: #e2e8f0; }
     button.danger {
       background: #fef2f2;
       color: #b91c1c;
     }
-    button.danger:hover:not(:disabled) { background: #fee2e2; }
+    button.danger:hover { background: #fee2e2; }
     input, select, textarea {
       font: inherit;
       padding: 0.55rem 0.75rem;
@@ -99,10 +74,6 @@ function islandStyles() {
       border-radius: 10px;
       width: 100%;
       background: #fff;
-    }
-    input[aria-invalid="true"], select[aria-invalid="true"], textarea[aria-invalid="true"] {
-      border-color: #b91c1c;
-      box-shadow: 0 0 0 1px #b91c1c;
     }
     label {
       display: block;
@@ -112,300 +83,110 @@ function islandStyles() {
       color: #334155;
     }
     .field { margin-bottom: 1rem; }
-    h2 { font-size: 1.15rem; margin: 0 0 0.75rem; }
-    .error-summary {
-      padding: 0.85rem 1rem;
-      margin-bottom: 1rem;
-      border-radius: 10px;
-      border: 2px solid #b91c1c;
-      background: #fef2f2;
-      color: #7f1d1d;
-      font-size: 0.95rem;
-    }
-    .error-summary ul { margin: 0.35rem 0 0 1.1rem; padding: 0; }
-    .error-summary li { margin-bottom: 0.25rem; }
-    .form-status {
-      padding: 0.85rem 1rem;
-      margin-bottom: 1rem;
-      border-radius: 10px;
-      border: 2px solid #15803d;
-      background: #f0fdf4;
-      color: #14532d;
-      font-size: 0.95rem;
-    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+    h2 { font-size: 1.2rem; margin: 0 0 0.75rem; }
+    p.lead { color: var(--muted); margin: 0 0 1.25rem; line-height: 1.6; }
   `;
 }
 
-function homePageHtml(nProducts, nTypes) {
-  return `
-    <div class="page-home">
-      <p id="home-status" class="visually-hidden" role="status" aria-live="polite"></p>
-      <p class="shadow-note">
-        Shell + sections below live in the <strong>light DOM</strong> (normal document tree). Visit <a href="#products">Products</a> to see the catalog grid inside its own <strong>shadow root</strong>.
-      </p>
+class ShopHome extends HTMLElement {
+  connectedCallback() {
+    const root = this.attachShadow({ mode: "open" });
+    root.innerHTML = `
+      <style>${baseChromeStyles()}</style>
+      <style>
+        .layout { display: grid; gap: 1.5rem; }
+        @media (min-width: 900px) {
+          .layout { grid-template-columns: 1fr 280px; align-items: start; }
+        }
+        .hero {
+          background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
+          color: white;
+          padding: 2rem;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+        }
+        .hero h1 { color: white; font-size: 2rem; }
+        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.6; }
+        .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        .card {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem;
+          box-shadow: var(--shadow);
+        }
+        .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+        .ad-actions {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+        }
+        .ad-actions button {
+          width: 100%;
+        }
+        .badge { display: inline-block; background: rgb(255 255 255 / 0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; margin-bottom: 0.75rem; }
+      </style>
       <div class="layout">
         <div>
           <section class="hero">
-            <span class="badge" aria-hidden="true">Shadow DOM storefront</span>
-            <h1>Light DOM pages, shadow DOM widgets</h1>
+            <span class="badge">Shadow DOM storefront</span>
+            <h1>Everything lives inside shadow roots</h1>
             <p>
-              Browse a larger catalog with filters and pagination, build a cart that persists locally, walk through checkout,
-              and manage an account — interactive islands (catalog, cart, checkout, account form) use shadow DOM; this landing copy stays in the light tree so host-page CSS can theme it like any normal page.
+              Browse products with filters and pagination, manage your cart, check out, and update your account —
+              all UI markup and styles are encapsulated so they stay predictable and isolated.
             </p>
-            <button type="button" class="action" id="cta-products" aria-label="Browse all ${nProducts} products in the catalog">Browse ${nProducts} products</button>
+            <button type="button" id="cta-products">Shop products</button>
           </section>
-
-          <section class="block">
-            <h2>At a glance</h2>
-            <p class="lead">
-              Shadow Shop is a static demo you can extend: swap images, wire APIs, or embed this shell inside a host page without colliding with global styles on encapsulated widgets.
-            </p>
-            <ul class="stats" aria-label="Store highlights">
-              <li class="stat"><b>${nProducts}</b><span>demo SKUs</span></li>
-              <li class="stat"><b>${nTypes}</b><span>categories</span></li>
-              <li class="stat"><b>24/7</b><span>imaginary support</span></li>
-              <li class="stat"><b>0</b><span>servers required</span></li>
-            </ul>
-          </section>
-
-          <section class="block">
+          <section style="margin-top: 1.5rem;">
             <h2>Why this demo</h2>
             <p class="lead">
-              Each encapsulated widget is a custom element with its own shadow tree. Marketing sections can stay in light DOM for CMS-driven styling; cart and catalog stay predictable inside shadows.
+              Each screen is a custom element with its own shadow tree. Global CSS from the document does not leak in,
+              and scoped CSS does not leak out — ideal for embedding widgets or keeping themes consistent per island.
             </p>
             <div class="cards">
-              <div class="card"><h3>Hybrid layout</h3><p>Long-form pages in light DOM; product grid and cart table in shadow islands.</p></div>
-              <div class="card"><h3>Pagination</h3><p>Eight items per page on the catalog island.</p></div>
-              <div class="card"><h3>Filters</h3><p>Narrow the grid by product type inside the catalog shadow tree.</p></div>
-              <div class="card"><h3>Cart sync</h3><p>Add from the grid; quantities and removals stay in localStorage.</p></div>
-              <div class="card"><h3>Checkout flow</h3><p>Shipping + summary encapsulated in one checkout island.</p></div>
-              <div class="card"><h3>Account island</h3><p>Profile form scoped separately from the page chrome.</p></div>
+              <div class="card"><h3>Pagination</h3><p>Six items per page on the catalog.</p></div>
+              <div class="card"><h3>Filters</h3><p>Narrow by product type.</p></div>
+              <div class="card"><h3>Persistent cart</h3><p>Selections sync via localStorage.</p></div>
             </div>
-          </section>
-
-          <section class="block band">
-            <h2>Light DOM vs shadow islands</h2>
-            <p>
-              Use light DOM for SEO-heavy landing copy, editorial layouts, and anything your CMS should style with ordinary CSS.
-              Put interactive commerce widgets (grid, line items, payment UI) in shadow roots when you need strong encapsulation or embed the same bundle on third-party sites.
-            </p>
-            <p style="margin-top:1rem;margin-bottom:0">
-              This page adds extra sections so you can scroll through long-form content the same way you would on a production landing page.
-            </p>
-          </section>
-
-          <section class="block">
-            <h2>Shipping, returns, and care</h2>
-            <div class="two cols">
-              <div class="card">
-                <h3>Delivery windows</h3>
-                <p>Metro orders ship in two business days in this fictional universe. Rural routes add one to three days depending on carrier partnerships.</p>
-              </div>
-              <div class="card">
-                <h3>Returns</h3>
-                <p>Unopened demo items may be “returned” by clearing localStorage — a cheeky reminder that persistence here is only in your browser.</p>
-              </div>
-              <div class="card">
-                <h3>Packaging</h3>
-                <p>Imaginary orders use recycled paper inserts and paper tape. Real integrations would pull packaging rules from your OMS.</p>
-              </div>
-              <div class="card">
-                <h3>Product care</h3>
-                <p>Apparel: cold wash, line dry. Electronics: avoid moisture. Home goods: check materials before microwaving.</p>
-              </div>
-            </div>
-          </section>
-
-          <section class="block two cols">
-            <div>
-              <h2>What shoppers say</h2>
-              <p class="lead" style="margin-bottom:1rem">Synthetic quotes for layout — replace with real reviews from your CMS.</p>
-              <blockquote class="quote">
-                “Pagination and filters feel snappy. I like that the cart badge updates without reloading the page.”
-                <footer>— Jordan M., early visitor</footer>
-              </blockquote>
-              <blockquote class="quote" style="margin-top:1rem">
-                “Splitting light pages from shadow widgets made it obvious what hosts can theme vs what stays isolated.”
-                <footer>— Priya S., product designer</footer>
-              </blockquote>
-            </div>
-            <div>
-              <h2>FAQ</h2>
-              <details>
-                <summary>Which parts use shadow DOM?</summary>
-                <p>Product catalog (filter + grid + pager), cart line items, checkout form + summary, and account form. Everything else you see on those routes is light DOM.</p>
-              </details>
-              <details>
-                <summary>Can I embed this in WordPress?</summary>
-                <p>Yes. Load the script bundle, drop <code>&lt;shop-root&gt;&lt;/shop-root&gt;</code> where you want the app, and ensure module paths resolve.</p>
-              </details>
-              <details>
-                <summary>Where do product images come from?</summary>
-                <p>picsum.photos with deterministic seeds per SKU.</p>
-              </details>
-              <details>
-                <summary>How do I add more SKUs?</summary>
-                <p>Edit <code>js/data.js</code> — filters derive from the dataset automatically.</p>
-              </details>
-            </div>
-          </section>
-
-          <section class="block">
-            <h2>Stay in the loop</h2>
-            <p class="lead" id="newsletter-desc">Newsletter UI only — hook this form to your ESP when you go live.</p>
-            <div class="news" role="group" aria-labelledby="newsletter-desc">
-              <label for="newsletter-email" class="visually-hidden">Email address</label>
-              <input type="email" id="newsletter-email" placeholder="you@example.com" autocomplete="email" />
-              <button type="button" class="action" id="cta-news" aria-describedby="newsletter-desc">Notify me</button>
-            </div>
-          </section>
-
-          <section class="block">
-            <p class="lead" style="margin-bottom:0.75rem;text-align:center">Trusted by pretend teams everywhere</p>
-            <div class="partners">
-              <span>Nimbus Labs</span>
-              <span>Harbor Commerce</span>
-              <span>Northwind Outfitters</span>
-              <span>Pixel Foundry</span>
-              <span>Atlas Logistics</span>
-            </div>
-          </section>
-
-          <section class="block cta-foot">
-            <h2>Ready to browse?</h2>
-            <p>Open the products grid (shadow island) to explore filters, pagination, and add-to-cart.</p>
-            <button type="button" class="action" id="cta-products-2" aria-label="Open the product catalog">Browse products</button>
           </section>
         </div>
-
-        <aside>
-          <div class="ad" style="margin-bottom: 1rem;">
-            <strong>Sponsored</strong>
-            Upgrade your workflow with premium templates. These rail cards are light DOM — easy to replace with ad tags.
-          </div>
-          <div class="ad" style="margin-bottom: 1rem;">
-            <strong>Seasonal sale</strong>
-            Fictional 20% off sitewide this weekend — swap this block for a live campaign widget when you connect an ad server.
-          </div>
-          <div class="ad">
-            <strong>Featured partner</strong>
-            Placeholder placement for co-marketing.
-          </div>
+        <aside class="ad-actions">
+          <button type="button" id="btn-sponsored">Sponsored</button>
+          <button type="button" id="btn-seasonal" class="secondary">Seasonal sale</button>
+          <button type="button" id="btn-partner" class="danger">Featured partner</button>
         </aside>
       </div>
-    </div>
-  `;
+    `;
+    root.getElementById("cta-products").addEventListener("click", () => {
+      window.location.hash = "products";
+    });
+
+    root.getElementById("btn-sponsored").addEventListener("click", (e) => {
+      e.preventDefault();
+      throw new TypeError(
+        "java.lang.NullPointerException: Cannot invoke \"Object.toString()\" because \"obj\" is null"
+      );
+    });
+
+    root.getElementById("btn-seasonal").addEventListener("click", (e) => {
+      e.preventDefault();
+      throw new RangeError(
+        "java.lang.ArrayIndexOutOfBoundsException: Index 12 out of bounds for length 5"
+      );
+    });
+
+    root.getElementById("btn-partner").addEventListener("click", (e) => {
+      e.preventDefault();
+      throw new Error(
+        "java.lang.IllegalStateException: Application is in an invalid state"
+      );
+    });
+  }
 }
 
-function wireHome(outlet) {
-  const goProducts = () => {
-    window.location.hash = "products";
-  };
-  outlet.querySelector("#cta-products")?.addEventListener("click", goProducts);
-  outlet.querySelector("#cta-products-2")?.addEventListener("click", goProducts);
-  outlet.querySelector("#cta-news")?.addEventListener("click", () => {
-    const status = outlet.querySelector("#home-status");
-    if (status) {
-      status.textContent = "This is a demo. Connect your email service to capture signups.";
-    }
-  });
-}
-
-function productsPageHtml() {
-  return `
-    <div class="page-products">
-      <p class="shadow-note">
-        Title and long copy below are <strong>light DOM</strong>. Only the <code>&lt;shop-catalog&gt;</code> widget (filter + product grid + pagination) is rendered inside a <strong>shadow root</strong>.
-      </p>
-      <h1>Products</h1>
-      <p class="lead">
-        ${PRODUCTS.length} items across ${TYPES.length} categories — filter and paginate (${PAGE_SIZE} per page), then add to your cart.
-        Scroll past the island for sizing notes and fulfillment copy (still light DOM).
-      </p>
-      <shop-catalog></shop-catalog>
-
-      <div class="below-fold">
-        <h2>Using this catalog</h2>
-        <p class="longcopy">
-          The catalog island keeps card styles private to that subtree. Change <code>PAGE_SIZE</code> in <code>js/app.js</code> if you want more rows per screen.
-        </p>
-
-        <h2>Category snapshots</h2>
-        <div class="tip-grid">
-          <div class="tip"><strong>Electronics</strong> Cables, deskside peripherals, and small gadgets — check voltage and regional plugs before checkout in a real store.</div>
-          <div class="tip"><strong>Apparel</strong> Unisex sizing in this demo. Use filters to focus on one department while you compare colors and materials.</div>
-          <div class="tip"><strong>Home</strong> Kitchen, décor, and everyday utilities. Bundle-friendly: add multiple lines to see the cart math update.</div>
-          <div class="tip"><strong>Beauty</strong> Topicals for demonstration only — always patch test real cosmetics and read ingredient lists.</div>
-          <div class="tip"><strong>Sports</strong> Training accessories with varied price points so totals look realistic when you test checkout.</div>
-        </div>
-
-        <h2>Fulfillment &amp; expectations</h2>
-        <p class="longcopy">
-          This project does not call a warehouse API. Treat shipping timelines, inventory counts, and backorder messages as static copy you can replace once you connect ERP or commerce APIs.
-        </p>
-
-        <div class="banner">
-          <strong>Prototyping tip:</strong> keep high-resolution photography in light DOM if you need shared <code>&lt;picture&gt;</code> art direction with the host — or keep imagery inside the catalog island for full encapsulation.
-        </div>
-
-        <h2>Accessibility checklist</h2>
-        <p class="longcopy">
-          When you extend the grid, preserve keyboard focus order: pagination buttons should stay adjacent to the list in the tab sequence, and filter controls should announce changes to screen readers via live regions if you fetch new pages from a server.
-        </p>
-
-        <h2>More placeholder detail</h2>
-        <p class="longcopy">
-          Loyalty points, gift messages, and subscription frequency are common upsells on product pages. This block mimics the vertical rhythm of those modules so you can eyeball spacing without touching cart logic.
-        </p>
-        <p class="longcopy" style="margin-top:1rem">
-          If you need infinite scroll instead of numbered pages, swap the pager inside <code>shop-catalog</code> for an IntersectionObserver that appends batches.
-        </p>
-      </div>
-    </div>
-  `;
-}
-
-function cartPageHtml() {
-  return `
-    <div class="page-cart">
-      <p class="shadow-note">
-        Headline and intro are <strong>light DOM</strong>. Line items, totals, and actions live inside <code>&lt;shop-cart-panel&gt;</code> (<strong>shadow root</strong>).
-      </p>
-      <h1>Cart</h1>
-      <p class="lead">Items you added on the Products page. Quantities update here and stay in localStorage.</p>
-      <shop-cart-panel></shop-cart-panel>
-    </div>
-  `;
-}
-
-function checkoutPageHtml() {
-  return `
-    <div class="page-checkout">
-      <p class="shadow-note">
-        Intro text is <strong>light DOM</strong>. Shipping, payment, and order summary are encapsulated in <code>&lt;shop-checkout-panel&gt;</code> (<strong>shadow root</strong>).
-      </p>
-      <h1>Checkout</h1>
-      <p class="lead">Shipping and payment placeholders — submit to complete the demo order and clear the cart.</p>
-      <shop-checkout-panel></shop-checkout-panel>
-    </div>
-  `;
-}
-
-function accountPageHtml() {
-  return `
-    <div class="page-account">
-      <p class="shadow-note">
-        Page title and disclaimer are <strong>light DOM</strong>. The profile form is <code>&lt;shop-account-panel&gt;</code> (<strong>shadow root</strong>).
-      </p>
-      <h1>Account</h1>
-      <p class="lead">Profile fields are stored locally for this demo (including password — do not use real secrets).</p>
-      <shop-account-panel></shop-account-panel>
-    </div>
-  `;
-}
-
-/** Product grid + filter + pagination — shadow DOM only. */
-class ShopCatalog extends HTMLElement {
+class ShopProducts extends HTMLElement {
   constructor() {
     super();
     this._filter = "all";
@@ -416,7 +197,7 @@ class ShopCatalog extends HTMLElement {
     const root = this.attachShadow({ mode: "open" });
     this._root = root;
     root.innerHTML = `
-      <style>${islandStyles()}</style>
+      <style>${baseChromeStyles()}</style>
       <style>
         .toolbar {
           display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
@@ -427,11 +208,8 @@ class ShopCatalog extends HTMLElement {
           display: grid;
           gap: 1rem;
           grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          list-style: none;
-          margin: 0;
-          padding: 0;
         }
-        .grid > li {
+        article {
           background: var(--card);
           border: 1px solid var(--border);
           border-radius: var(--radius);
@@ -440,7 +218,7 @@ class ShopCatalog extends HTMLElement {
           display: flex;
           flex-direction: column;
         }
-        .grid > li img { width: 100%; height: 160px; object-fit: cover; display: block; background: #f1f5f9; }
+        article img { width: 100%; height: 160px; object-fit: cover; display: block; background: #f1f5f9; }
         .body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
         .meta { font-size: 0.8rem; color: var(--muted); text-transform: capitalize; margin-bottom: 0.25rem; }
         .title { font-weight: 700; margin: 0 0 0.5rem; font-size: 1.05rem; }
@@ -451,17 +229,16 @@ class ShopCatalog extends HTMLElement {
         }
         .pager span { color: var(--muted); font-size: 0.9rem; }
       </style>
-      <section aria-labelledby="catalog-heading">
-        <h2 id="catalog-heading" class="visually-hidden">Product catalog</h2>
-        <div class="toolbar">
-          <div class="field">
-            <label for="type-filter">Product type</label>
-            <select id="type-filter"></select>
-          </div>
+      <h1>Products</h1>
+      <p class="lead">Filter by type and move between pages. Add items to your cart — they appear on the Cart page.</p>
+      <div class="toolbar">
+        <div class="field">
+          <label for="type-filter">Type</label>
+          <select id="type-filter"></select>
         </div>
-        <ul class="grid" id="grid"></ul>
-        <nav class="pager" id="pager" aria-label="Pagination"></nav>
-      </section>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="pager" id="pager"></div>
     `;
 
     const sel = root.getElementById("type-filter");
@@ -498,15 +275,15 @@ class ShopCatalog extends HTMLElement {
     grid.innerHTML = slice
       .map(
         (p) => `
-      <li data-id="${p.id}">
-        <img src="${escapeHtml(p.image)}" alt="${escapeAttr(p.name)}" width="480" height="360" loading="lazy" />
+      <article data-id="${p.id}">
+        <img src="${escapeHtml(p.image)}" alt="" width="480" height="360" loading="lazy" />
         <div class="body">
           <div class="meta">${escapeHtml(p.type)}</div>
           <div class="title">${escapeHtml(p.name)}</div>
           <div class="price">$${p.price.toFixed(2)}</div>
-          <button type="button" class="add" style="margin-top:0.75rem;width:100%" aria-label="Add ${escapeAttr(p.name)} to cart">Add to cart</button>
+          <button type="button" class="add" style="margin-top:0.75rem;width:100%">Add to cart</button>
         </div>
-      </li>
+      </article>
     `
       )
       .join("");
@@ -517,9 +294,9 @@ class ShopCatalog extends HTMLElement {
 
     const pager = root.getElementById("pager");
     pager.innerHTML = `
-      <button type="button" class="secondary" id="prev" aria-label="Go to previous page" ${this._page <= 1 ? "disabled" : ""}>Previous</button>
-      <span id="pagination-status" aria-live="polite" aria-atomic="true">Page ${this._page} of ${totalPages}</span>
-      <button type="button" class="secondary" id="next" aria-label="Go to next page" ${this._page >= totalPages ? "disabled" : ""}>Next</button>
+      <button type="button" class="secondary" id="prev" ${this._page <= 1 ? "disabled" : ""}>Previous</button>
+      <span>Page ${this._page} of ${totalPages}</span>
+      <button type="button" class="secondary" id="next" ${this._page >= totalPages ? "disabled" : ""}>Next</button>
     `;
     const prev = pager.querySelector("#prev");
     const next = pager.querySelector("#next");
@@ -536,13 +313,12 @@ class ShopCatalog extends HTMLElement {
   }
 }
 
-/** Cart table + totals — shadow DOM only. */
-class ShopCartPanel extends HTMLElement {
+class ShopCart extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     this._root = root;
     root.innerHTML = `
-      <style>${islandStyles()}</style>
+      <style>${baseChromeStyles()}</style>
       <style>
         table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
         th, td { text-align: left; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
@@ -554,7 +330,8 @@ class ShopCartPanel extends HTMLElement {
         .totals { margin-top: 1rem; text-align: right; font-size: 1.15rem; font-weight: 700; }
         .empty { padding: 2rem; text-align: center; color: var(--muted); background: #f8fafc; border-radius: var(--radius); border: 1px dashed var(--border); }
       </style>
-      <div id="cart-live" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+      <h1>Cart</h1>
+      <p class="lead">Items you added on the Products page. Quantities update here and stay in localStorage.</p>
       <div id="container"></div>
     `;
     this._paint();
@@ -564,43 +341,35 @@ class ShopCartPanel extends HTMLElement {
   _paint() {
     const cart = getCart();
     const el = this._root.getElementById("container");
-    const live = this._root.getElementById("cart-live");
-    const announce = (msg) => {
-      if (live) live.textContent = msg;
-    };
     if (cart.length === 0) {
-      el.innerHTML = `<div class="empty" role="status">Your cart is empty. <a href="#products">Browse products</a>.</div>`;
-      announce("Your cart is empty.");
+      el.innerHTML = `<div class="empty">Your cart is empty. <a href="#products">Browse products</a>.</div>`;
       return;
     }
-    const nItems = cart.reduce((s, l) => s + l.qty, 0);
     el.innerHTML = `
-      <table aria-label="Shopping cart line items">
-        <caption class="visually-hidden">Items in your cart with quantity and price</caption>
-        <thead><tr><th scope="col" class="visually-hidden">Image</th><th scope="col">Product</th><th scope="col">Price</th><th scope="col">Quantity</th><th scope="col"><span class="visually-hidden">Remove</span></th></tr></thead>
+      <table>
+        <thead><tr><th></th><th>Product</th><th>Price</th><th>Qty</th><th></th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
-      <div class="totals" id="total" aria-live="polite"></div>
-      <p style="margin-top:1rem"><button type="button" id="checkout" aria-label="Proceed to checkout with current cart">Proceed to checkout</button></p>
+      <div class="totals" id="total"></div>
+      <p style="margin-top:1rem"><button type="button" id="checkout">Proceed to checkout</button></p>
     `;
     const tbody = el.querySelector("#tbody");
     tbody.innerHTML = cart
       .map(
         (l) => `
       <tr data-id="${l.id}">
-        <td><img class="thumb" src="${escapeHtml(l.image)}" alt="" role="presentation" /></td>
-        <th scope="row">
+        <td><img class="thumb" src="${escapeHtml(l.image)}" alt="" /></td>
+        <td>
           <div style="font-weight:600">${escapeHtml(l.name)}</div>
           <div style="font-size:0.8rem;color:var(--muted);text-transform:capitalize">${escapeHtml(l.type)}</div>
-        </th>
+        </td>
         <td>$${l.price.toFixed(2)}</td>
         <td>
           <div class="qty">
-            <label for="qty-${l.id}" class="visually-hidden">Quantity for ${escapeAttr(l.name)}</label>
-            <input id="qty-${l.id}" type="number" min="1" max="99" value="${l.qty}" />
+            <input type="number" min="1" max="99" value="${l.qty}" aria-label="Quantity for ${escapeHtml(l.name)}" />
           </div>
         </td>
-        <td><button type="button" class="danger remove" aria-label="Remove ${escapeAttr(l.name)} from cart">Remove</button></td>
+        <td><button type="button" class="danger remove">Remove</button></td>
       </tr>
     `
       )
@@ -621,19 +390,17 @@ class ShopCartPanel extends HTMLElement {
     });
 
     el.querySelector("#total").textContent = `Total: $${cartTotal(cart).toFixed(2)}`;
-    announce(`Cart updated. ${nItems} items. Total ${cartTotal(cart).toFixed(2)} dollars.`);
     el.querySelector("#checkout").addEventListener("click", () => {
       window.location.hash = "checkout";
     });
   }
 }
 
-/** Checkout form + summary — shadow DOM only. */
-class ShopCheckoutPanel extends HTMLElement {
+class ShopCheckout extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     root.innerHTML = `
-      <style>${islandStyles()}</style>
+      <style>${baseChromeStyles()}</style>
       <style>
         .split {
           display: grid;
@@ -649,220 +416,29 @@ class ShopCheckoutPanel extends HTMLElement {
           padding: 1.25rem;
           box-shadow: var(--shadow);
         }
-        fieldset {
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem 1.1rem 1.1rem;
-          margin: 0 0 1.25rem;
-        }
-        legend { font-weight: 700; padding: 0 0.35rem; }
-        .payment-list {
-          display: grid;
-          gap: 0.6rem;
-          margin-bottom: 0.5rem;
-        }
-        .payment-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.6rem;
-          padding: 0.75rem;
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          background: #fff;
-        }
-        .payment-item input[type="radio"] {
-          width: auto;
-          min-width: 1.25rem;
-          min-height: 1.25rem;
-          margin-top: 0.2rem;
-        }
-        .payment-item .label-text {
-          display: block;
-          font-weight: 700;
-          margin-bottom: 0.15rem;
-        }
-        .payment-item .hint {
-          display: block;
-          color: var(--muted);
-          font-size: 0.85rem;
-          line-height: 1.45;
-        }
-        .method-fields {
-          margin-top: 0.75rem;
-          margin-bottom: 0;
-          padding: 0.85rem;
-          border: 1px dashed var(--border);
-          border-radius: 10px;
-          background: #f8fafc;
-        }
-        .method-fields[hidden] { display: none; }
-        .mini {
-          color: var(--muted);
-          font-size: 0.82rem;
-          margin: 0.2rem 0 0;
-          line-height: 1.4;
-        }
         .summary-row { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem; }
         .summary-total { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem; }
-        .check-row {
-          display: flex;
-          align-items: flex-start;
-          gap: 0.5rem;
-        }
-        .check-row input { width: auto; min-width: 1.25rem; min-height: 1.25rem; margin-top: 0.15rem; }
-        .check-row label { margin: 0; font-weight: 600; }
       </style>
+      <h1>Checkout</h1>
+      <p class="lead">Shipping and payment placeholders — submit to complete the demo order and clear the cart.</p>
       <div class="split">
         <form id="form" class="panel">
-          <div id="form-status" class="form-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
-          <div id="error-summary" class="error-summary" role="alert" aria-live="assertive" tabindex="-1" hidden></div>
-
-          <fieldset>
-            <legend>Shipping address</legend>
-            <div class="field"><label for="full">Full name</label><input id="full" name="full" required autocomplete="name" /></div>
-            <div class="field"><label for="line1">Address line 1</label><input id="line1" name="line1" required autocomplete="address-line1" /></div>
-            <div class="field"><label for="line2">Address line 2 <span class="mini" style="display:inline;font-weight:400">(optional)</span></label><input id="line2" name="line2" autocomplete="address-line2" /></div>
-            <div class="field"><label for="city">City</label><input id="city" name="city" required autocomplete="address-level2" /></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-              <div class="field"><label for="state">State</label><input id="state" name="state" required autocomplete="address-level1" /></div>
-              <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
-            </div>
-            <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" required inputmode="tel" autocomplete="tel" /></div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Payment method</legend>
-            <div class="payment-list" role="radiogroup" aria-label="Choose how to pay">
-            <label class="payment-item">
-              <input type="radio" name="paymentMethod" value="upi" checked />
-              <span>
-                <span class="label-text">UPI</span>
-                <span class="hint">Pay via UPI ID or app (Google Pay, PhonePe, Paytm).</span>
-              </span>
-            </label>
-            <label class="payment-item">
-              <input type="radio" name="paymentMethod" value="card" />
-              <span>
-                <span class="label-text">Credit / Debit Card</span>
-                <span class="hint">Visa, Mastercard, RuPay, and AmEx supported in this demo.</span>
-              </span>
-            </label>
-            <label class="payment-item">
-              <input type="radio" name="paymentMethod" value="cod" />
-              <span>
-                <span class="label-text">Cash on Delivery</span>
-                <span class="hint">Pay at delivery for eligible orders under Rs. 5000.</span>
-              </span>
-            </label>
-            <label class="payment-item">
-              <input type="radio" name="paymentMethod" value="wallet" />
-              <span>
-                <span class="label-text">Wallet</span>
-                <span class="hint">Use your store wallet balance or linked prepaid wallet.</span>
-              </span>
-            </label>
-            <label class="payment-item">
-              <input type="radio" name="paymentMethod" value="netbanking" />
-              <span>
-                <span class="label-text">Net Banking</span>
-                <span class="hint">Choose your bank and continue to secure login.</span>
-              </span>
-            </label>
-            </div>
-
-            <div class="method-fields" data-method="upi">
-              <div class="field"><label for="upiId">UPI ID</label><input id="upiId" name="upiId" placeholder="name@bank" autocomplete="off" /></div>
-              <p class="mini">A collect request will be sent to your UPI app.</p>
-            </div>
-
-            <div class="method-fields" data-method="card" hidden>
-              <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-                <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
-                <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" /></div>
-              </div>
-            </div>
-
-            <div class="method-fields" data-method="cod" hidden>
-              <div class="field">
-                <label for="codNote">Delivery instruction <span class="mini" style="display:inline;font-weight:400">(optional)</span></label>
-                <input id="codNote" name="codNote" placeholder="Landmark, gate code, preferred slot" />
-              </div>
-              <p class="mini">Keep exact change ready when possible for faster handoff.</p>
-            </div>
-
-            <div class="method-fields" data-method="wallet" hidden>
-              <div class="field"><label for="walletId">Wallet ID / mobile</label><input id="walletId" name="walletId" inputmode="tel" autocomplete="off" /></div>
-              <p class="mini">Available balance and OTP verification will be shown in real integrations.</p>
-            </div>
-
-            <div class="method-fields" data-method="netbanking" hidden>
-              <div class="field">
-                <label for="bankName">Select bank</label>
-                <select id="bankName" name="bankName">
-                  <option value="">Choose bank</option>
-                  <option value="sbi">State Bank of India</option>
-                  <option value="hdfc">HDFC Bank</option>
-                  <option value="icici">ICICI Bank</option>
-                  <option value="axis">Axis Bank</option>
-                  <option value="kotak">Kotak Mahindra Bank</option>
-                </select>
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset>
-            <legend>Order options</legend>
-            <div class="field check-row">
-              <input type="checkbox" id="sameAddress" name="sameAddress" checked />
-              <label for="sameAddress">Billing address same as shipping</label>
-            </div>
-            <div class="field"><label for="notes">Order note <span class="mini" style="display:inline;font-weight:400">(optional)</span></label><textarea id="notes" name="notes" rows="3" placeholder="Any special instructions for packing or delivery"></textarea></div>
-          </fieldset>
-
+          <h2>Shipping</h2>
+          <div class="field"><label for="full">Full name</label><input id="full" name="full" required autocomplete="name" /></div>
+          <div class="field"><label for="line1">Address line 1</label><input id="line1" name="line1" required autocomplete="address-line1" /></div>
+          <div class="field"><label for="city">City</label><input id="city" name="city" required autocomplete="address-level2" /></div>
+          <div class="field"><label for="zip">Postal code</label><input id="zip" name="zip" required autocomplete="postal-code" /></div>
+          <h2 style="margin-top:1rem">Payment</h2>
+          <div class="field"><label for="card">Card number</label><input id="card" name="card" inputmode="numeric" placeholder="4242 4242 4242 4242" autocomplete="cc-number" /></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <div class="field"><label for="exp">Expiry</label><input id="exp" name="exp" placeholder="MM/YY" autocomplete="cc-exp" /></div>
+            <div class="field"><label for="cvc">CVC</label><input id="cvc" name="cvc" autocomplete="cc-csc" /></div>
+          </div>
           <button type="submit">Place order</button>
         </form>
-        <aside class="panel" id="summary-panel" aria-label="Order summary"></aside>
+        <div class="panel" id="summary-panel"></div>
       </div>
     `;
-
-    const methodInputs = root.querySelectorAll('input[name="paymentMethod"]');
-    const methodBlocks = root.querySelectorAll(".method-fields");
-    const syncMethodSections = () => {
-      const selected = root.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
-      methodBlocks.forEach((block) => {
-        block.hidden = block.getAttribute("data-method") !== selected;
-      });
-    };
-    methodInputs.forEach((input) => input.addEventListener("change", syncMethodSections));
-    syncMethodSections();
-
-    const errEl = root.getElementById("error-summary");
-    const okEl = root.getElementById("form-status");
-
-    const clearMessages = () => {
-      errEl.hidden = true;
-      errEl.innerHTML = "";
-      okEl.hidden = true;
-      okEl.textContent = "";
-      root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
-    };
-
-    const showErrors = (messages) => {
-      clearMessages();
-      errEl.hidden = false;
-      const p = document.createElement("p");
-      p.textContent = "Please correct the following:";
-      errEl.appendChild(p);
-      const ul = document.createElement("ul");
-      messages.forEach((msg) => {
-        const li = document.createElement("li");
-        li.textContent = msg;
-        ul.appendChild(li);
-      });
-      errEl.appendChild(ul);
-      errEl.focus();
-    };
 
     const paintSummary = () => {
       const cart = getCart();
@@ -885,103 +461,25 @@ class ShopCheckoutPanel extends HTMLElement {
     paintSummary();
     window.addEventListener("shadow-shop-cart", paintSummary);
 
-    const digitsOnly = (s) => String(s || "").replace(/\D/g, "");
-
     root.getElementById("form").addEventListener("submit", (e) => {
       e.preventDefault();
-      clearMessages();
-      const form = root.getElementById("form");
-
       if (getCart().length === 0) {
-        showErrors(["Your cart is empty. Add products before checking out."]);
+        alert("Your cart is empty.");
         return;
       }
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const method = root.querySelector('input[name="paymentMethod"]:checked')?.value || "upi";
-      const errors = [];
-      const mark = (el) => el?.setAttribute("aria-invalid", "true");
-
-      if (method === "upi") {
-        const upi = root.querySelector("#upiId");
-        const v = upi.value.trim();
-        if (!v) {
-          errors.push("Enter your UPI ID.");
-          mark(upi);
-        } else if (!/^[\w.\-]{2,}@[\w.\-]{2,}$/i.test(v)) {
-          errors.push("UPI ID should look like name@bank.");
-          mark(upi);
-        }
-      } else if (method === "card") {
-        const card = root.querySelector("#card");
-        const exp = root.querySelector("#exp");
-        const cvc = root.querySelector("#cvc");
-        const cn = digitsOnly(card.value);
-        if (cn.length < 13) {
-          errors.push("Enter a valid card number.");
-          mark(card);
-        }
-        if (!exp.value.trim()) {
-          errors.push("Enter the card expiry date.");
-          mark(exp);
-        }
-        const cvcN = digitsOnly(cvc.value);
-        if (cvcN.length < 3) {
-          errors.push("Enter the card security code (CVC).");
-          mark(cvc);
-        }
-      } else if (method === "wallet") {
-        const w = root.querySelector("#walletId");
-        if (!w.value.trim()) {
-          errors.push("Enter your wallet ID or mobile number.");
-          mark(w);
-        }
-      } else if (method === "netbanking") {
-        const bank = root.querySelector("#bankName");
-        if (!bank.value) {
-          errors.push("Select your bank for net banking.");
-          mark(bank);
-        }
-      }
-
-      if (errors.length) {
-        showErrors(errors);
-        return;
-      }
-
-      const methodLabel =
-        method === "upi"
-          ? "UPI"
-          : method === "card"
-            ? "card"
-            : method === "cod"
-              ? "cash on delivery"
-              : method === "wallet"
-                ? "wallet"
-                : "net banking";
-
-      okEl.hidden = false;
-      okEl.textContent = `Order placed successfully. Payment: ${methodLabel}. Redirecting…`;
-      okEl.focus();
       saveCart([]);
-      setTimeout(() => {
-        window.location.hash = "home";
-      }, 900);
+      alert("Thanks — demo order placed. Cart cleared.");
+      window.location.hash = "home";
     });
   }
 }
 
-/** Account form — shadow DOM only. */
-class ShopAccountPanel extends HTMLElement {
+class ShopAccount extends HTMLElement {
   connectedCallback() {
     const root = this.attachShadow({ mode: "open" });
     const acc = getAccount();
     root.innerHTML = `
-      <style>${islandStyles()}</style>
+      <style>${baseChromeStyles()}</style>
       <style>
         .panel {
           max-width: 480px;
@@ -993,95 +491,125 @@ class ShopAccountPanel extends HTMLElement {
         }
         .hint { font-size: 0.85rem; color: var(--muted); margin-top: 0.25rem; }
       </style>
-      <div id="acct-status" class="form-status" role="status" aria-live="polite" tabindex="-1" hidden></div>
-      <form id="form" class="panel" aria-describedby="acct-hint">
-        <p id="acct-hint" class="hint" style="margin-top:0;margin-bottom:1rem">Demo only — credentials are stored in plain text in localStorage. Do not use real passwords.</p>
+      <h1>Account</h1>
+      <p class="lead">Profile fields are stored locally for this demo (including password — do not use real secrets).</p>
+      <form id="form" class="panel">
         <div class="field">
           <label for="firstName">First name</label>
-          <input id="firstName" name="firstName" required autocomplete="given-name" value="${escapeAttr(acc.firstName)}" />
+          <input id="firstName" name="firstName" autocomplete="given-name" value="${escapeAttr(acc.firstName)}" />
         </div>
         <div class="field">
           <label for="lastName">Last name</label>
-          <input id="lastName" name="lastName" required autocomplete="family-name" value="${escapeAttr(acc.lastName)}" />
+          <input id="lastName" name="lastName" autocomplete="family-name" value="${escapeAttr(acc.lastName)}" />
         </div>
         <div class="field">
           <label for="email">Email</label>
-          <input id="email" name="email" type="email" required autocomplete="email" value="${escapeAttr(acc.email)}" />
+          <input id="email" name="email" type="email" autocomplete="email" value="${escapeAttr(acc.email)}" />
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" name="password" type="password" required autocomplete="new-password" value="${escapeAttr(acc.password)}" />
-          <div class="hint">For demos only; not a secure store.</div>
+          <input id="password" name="password" type="password" autocomplete="new-password" value="${escapeAttr(acc.password)}" />
+          <div class="hint">Demo only — stored in plain text in localStorage.</div>
         </div>
         <button type="submit">Save profile</button>
       </form>
     `;
-    const form = root.getElementById("form");
-    const okBox = root.getElementById("acct-status");
-
-    form.addEventListener("submit", (e) => {
+    root.getElementById("form").addEventListener("submit", (e) => {
       e.preventDefault();
-      okBox.hidden = true;
-      okBox.textContent = "";
-      root.querySelectorAll('[aria-invalid="true"]').forEach((el) => el.removeAttribute("aria-invalid"));
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      const fd = new FormData(form);
+      const fd = new FormData(e.target);
       saveAccount({
         firstName: String(fd.get("firstName") || ""),
         lastName: String(fd.get("lastName") || ""),
         email: String(fd.get("email") || ""),
         password: String(fd.get("password") || ""),
       });
-      okBox.hidden = false;
-      okBox.textContent = "Profile saved.";
-      okBox.focus();
+      alert("Profile saved.");
     });
   }
 }
 
-/** App shell — light DOM only (no shadow root on the whole site). */
 class ShopRoot extends HTMLElement {
   connectedCallback() {
-    this.innerHTML = `
-      <a href="#main-content" class="skip-link">Skip to main content</a>
-      <div class="shop-shell">
-        <header role="banner">
-          <a class="brand" href="#home" aria-label="Shadow Shop home">Shadow Shop</a>
-          <nav id="nav" role="navigation" aria-label="Primary">
+    const root = this.attachShadow({ mode: "open" });
+    root.innerHTML = `
+      <style>${baseChromeStyles()}</style>
+      <style>
+        .shell {
+          min-height: 100vh;
+          background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 32%);
+          padding: 1rem clamp(1rem, 4vw, 2rem) 2rem;
+        }
+        header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          flex-wrap: wrap;
+          margin-bottom: 1.5rem;
+        }
+        .brand {
+          font-weight: 800;
+          font-size: 1.25rem;
+          letter-spacing: -0.03em;
+          color: #0f172a;
+          text-decoration: none;
+        }
+        .brand:hover { text-decoration: none; opacity: 0.85; }
+        nav {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.35rem 0.75rem;
+          align-items: center;
+        }
+        nav a {
+          padding: 0.35rem 0.65rem;
+          border-radius: 999px;
+          color: #334155;
+          font-weight: 600;
+          font-size: 0.9rem;
+          text-decoration: none;
+        }
+        nav a:hover { background: #e2e8f0; text-decoration: none; }
+        nav a.active { background: #dbeafe; color: #1e40af; }
+        .cart-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 1.25rem;
+          height: 1.25rem;
+          padding: 0 0.35rem;
+          margin-left: 0.25rem;
+          font-size: 0.7rem;
+          font-weight: 700;
+          background: var(--accent);
+          color: white;
+          border-radius: 999px;
+        }
+        main { max-width: 1100px; margin: 0 auto; }
+      </style>
+      <div class="shell">
+        <header>
+          <a class="brand" href="#home">Shadow Shop</a>
+          <nav id="nav">
             <a href="#home" data-route="home">Home</a>
             <a href="#products" data-route="products">Products</a>
-            <a href="#cart" data-route="cart" id="nav-cart-link">Cart<span class="cart-badge" id="badge" hidden aria-hidden="true">0</span></a>
+            <a href="#cart" data-route="cart">Cart<span class="cart-badge" id="badge" hidden>0</span></a>
             <a href="#checkout" data-route="checkout">Checkout</a>
             <a href="#account" data-route="account">Account</a>
           </nav>
         </header>
-        <main class="page-outlet" id="main-content" tabindex="-1"></main>
+        <main id="outlet"></main>
       </div>
     `;
 
-    this._outlet = this.querySelector("#main-content");
-    this._nav = this.querySelector("#nav");
-    this._badge = this.querySelector("#badge");
-    this._cartLink = this.querySelector("#nav-cart-link");
-
-    const skip = this.querySelector(".skip-link");
-    skip?.addEventListener("click", () => {
-      queueMicrotask(() => this._outlet?.focus());
-    });
+    this._outlet = root.getElementById("outlet");
+    this._nav = root.getElementById("nav");
+    this._badge = root.getElementById("badge");
 
     const updateBadge = () => {
       const n = getCart().reduce((s, l) => s + l.qty, 0);
       this._badge.textContent = String(n);
       this._badge.hidden = n === 0;
-      this._badge.setAttribute("aria-hidden", "true");
-      if (this._cartLink) {
-        this._cartLink.setAttribute("aria-label", n === 0 ? "Shopping cart, empty" : `Shopping cart, ${n} items`);
-      }
     };
     updateBadge();
     window.addEventListener("shadow-shop-cart", updateBadge);
@@ -1089,34 +617,28 @@ class ShopRoot extends HTMLElement {
     const render = () => {
       const raw = (window.location.hash.replace(/^#/, "") || "home").toLowerCase();
       const route = VALID_ROUTES.includes(raw) ? raw : "home";
-      const titles = { home: "Home", products: "Products", cart: "Cart", checkout: "Checkout", account: "Account" };
-      document.title = route === "home" ? "Shadow Shop" : `Shadow Shop — ${titles[route] || "Home"}`;
-      const outlet = this._outlet;
-      outlet.innerHTML = "";
-
+      this._outlet.innerHTML = "";
+      let el;
       switch (route) {
         case "products":
-          outlet.innerHTML = productsPageHtml();
+          el = document.createElement("shop-products");
           break;
         case "cart":
-          outlet.innerHTML = cartPageHtml();
+          el = document.createElement("shop-cart");
           break;
         case "checkout":
-          outlet.innerHTML = checkoutPageHtml();
+          el = document.createElement("shop-checkout");
           break;
         case "account":
-          outlet.innerHTML = accountPageHtml();
+          el = document.createElement("shop-account");
           break;
         default:
-          outlet.innerHTML = homePageHtml(PRODUCTS.length, TYPES.length);
-          wireHome(outlet);
+          el = document.createElement("shop-home");
       }
+      this._outlet.appendChild(el);
 
       this._nav.querySelectorAll("a[data-route]").forEach((a) => {
-        const on = a.dataset.route === route;
-        a.classList.toggle("active", on);
-        if (on) a.setAttribute("aria-current", "page");
-        else a.removeAttribute("aria-current");
+        a.classList.toggle("active", a.dataset.route === route);
       });
     };
 
@@ -1125,8 +647,9 @@ class ShopRoot extends HTMLElement {
   }
 }
 
-customElements.define("shop-catalog", ShopCatalog);
-customElements.define("shop-cart-panel", ShopCartPanel);
-customElements.define("shop-checkout-panel", ShopCheckoutPanel);
-customElements.define("shop-account-panel", ShopAccountPanel);
+customElements.define("shop-home", ShopHome);
+customElements.define("shop-products", ShopProducts);
+customElements.define("shop-cart", ShopCart);
+customElements.define("shop-checkout", ShopCheckout);
+customElements.define("shop-account", ShopAccount);
 customElements.define("shop-root", ShopRoot);
