@@ -95,63 +95,67 @@ class ShopHome extends HTMLElement {
     root.innerHTML = `
       <style>${baseChromeStyles()}</style>
       <style>
-        .layout { display: grid; gap: 1.5rem; }
+        :host {
+          display: block;
+          height: 100%;
+        }
+        .layout {
+          display: grid;
+          gap: 1rem;
+          height: 100%;
+          align-content: start;
+        }
         @media (min-width: 900px) {
-          .layout { grid-template-columns: 1fr 280px; align-items: start; }
+          .layout {
+            grid-template-columns: 1fr 220px;
+            align-items: stretch;
+          }
         }
         .hero {
           background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
           color: white;
-          padding: 2rem;
+          padding: 1.25rem 1.5rem;
           border-radius: var(--radius);
           box-shadow: var(--shadow);
         }
-        .hero h1 { color: white; font-size: 2rem; }
-        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.6; }
-        .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-        .card {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1rem;
-          box-shadow: var(--shadow);
+        .hero h1 {
+          color: white;
+          font-size: 1.5rem;
+          margin: 0 0 0.5rem;
         }
-        .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
-        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+        .hero p {
+          opacity: 0.95;
+          margin: 0 0 0.75rem;
+          line-height: 1.45;
+          font-size: 0.95rem;
+        }
         .ad-actions {
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.65rem;
+          justify-content: center;
         }
         .ad-actions button {
           width: 100%;
         }
-        .badge { display: inline-block; background: rgb(255 255 255 / 0.2); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; margin-bottom: 0.75rem; }
+        .badge {
+          display: inline-block;
+          background: rgb(255 255 255 / 0.2);
+          padding: 0.15rem 0.5rem;
+          border-radius: 999px;
+          font-size: 0.7rem;
+          margin-bottom: 0.5rem;
+        }
       </style>
       <div class="layout">
-        <div>
-          <section class="hero">
-            <span class="badge">Shadow DOM storefront</span>
-            <h1>Everything lives inside shadow roots</h1>
-            <p>
-              Browse products with filters and pagination, manage your cart, check out, and update your account —
-              all UI markup and styles are encapsulated so they stay predictable and isolated.
-            </p>
-            <button type="button" id="cta-products">Shop products</button>
-          </section>
-          <section style="margin-top: 1.5rem;">
-            <h2>Why this demo</h2>
-            <p class="lead">
-              Each screen is a custom element with its own shadow tree. Global CSS from the document does not leak in,
-              and scoped CSS does not leak out — ideal for embedding widgets or keeping themes consistent per island.
-            </p>
-            <div class="cards">
-              <div class="card"><h3>Pagination</h3><p>Six items per page on the catalog.</p></div>
-              <div class="card"><h3>Filters</h3><p>Narrow by product type.</p></div>
-              <div class="card"><h3>Persistent cart</h3><p>Selections sync via localStorage.</p></div>
-            </div>
-          </section>
-        </div>
+        <section class="hero">
+          <span class="badge">Shadow DOM storefront</span>
+          <h1>Everything lives inside shadow roots</h1>
+          <p>
+            Browse products, manage your cart, and check out — UI markup and styles stay isolated in shadow roots.
+          </p>
+          <button type="button" id="cta-products">Shop products</button>
+        </section>
         <aside class="ad-actions">
           <button type="button" id="btn-sponsored">Sponsored</button>
           <button type="button" id="btn-seasonal" class="secondary">Seasonal sale</button>
@@ -534,10 +538,19 @@ class ShopRoot extends HTMLElement {
     root.innerHTML = `
       <style>${baseChromeStyles()}</style>
       <style>
+        :host {
+          display: block;
+          height: 100vh;
+          overflow: hidden;
+        }
         .shell {
-          min-height: 100vh;
+          height: 100%;
+          box-sizing: border-box;
           background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 32%);
-          padding: 1rem clamp(1rem, 4vw, 2rem) 2rem;
+          padding: 0.75rem clamp(1rem, 4vw, 2rem) 1rem;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
         }
         header {
           display: flex;
@@ -545,7 +558,8 @@ class ShopRoot extends HTMLElement {
           justify-content: space-between;
           gap: 1rem;
           flex-wrap: wrap;
-          margin-bottom: 1.5rem;
+          margin-bottom: 0.75rem;
+          flex-shrink: 0;
         }
         .brand {
           font-weight: 800;
@@ -585,7 +599,14 @@ class ShopRoot extends HTMLElement {
           color: white;
           border-radius: 999px;
         }
-        main { max-width: 1100px; margin: 0 auto; }
+        main {
+          max-width: 1100px;
+          margin: 0 auto;
+          width: 100%;
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+        }
       </style>
       <div class="shell">
         <header>
