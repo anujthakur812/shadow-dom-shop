@@ -95,67 +95,262 @@ class ShopHome extends HTMLElement {
     root.innerHTML = `
       <style>${baseChromeStyles()}</style>
       <style>
-        :host {
-          display: block;
-          height: 100%;
-        }
-        .layout {
-          display: grid;
-          gap: 1rem;
-          height: 100%;
-          align-content: start;
-        }
+        .layout { display: grid; gap: 1.5rem; }
         @media (min-width: 900px) {
-          .layout {
-            grid-template-columns: 1fr 220px;
-            align-items: stretch;
-          }
+          .layout { grid-template-columns: 1fr 240px; align-items: start; }
         }
         .hero {
           background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #38bdf8 100%);
           color: white;
-          padding: 1.25rem 1.5rem;
+          padding: 2rem;
           border-radius: var(--radius);
           box-shadow: var(--shadow);
         }
-        .hero h1 {
-          color: white;
-          font-size: 1.5rem;
-          margin: 0 0 0.5rem;
+        .hero h1 { color: white; font-size: 2rem; }
+        .hero p { opacity: 0.95; margin: 0 0 1rem; line-height: 1.6; }
+        .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+        .card {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem;
+          box-shadow: var(--shadow);
         }
-        .hero p {
-          opacity: 0.95;
-          margin: 0 0 0.75rem;
-          line-height: 1.45;
-          font-size: 0.95rem;
-        }
+        .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+        .card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
         .ad-actions {
           display: flex;
           flex-direction: column;
-          gap: 0.65rem;
-          justify-content: center;
+          gap: 0.75rem;
+          position: sticky;
+          top: 1rem;
         }
-        .ad-actions button {
-          width: 100%;
-        }
+        .ad-actions button { width: 100%; }
         .badge {
           display: inline-block;
           background: rgb(255 255 255 / 0.2);
-          padding: 0.15rem 0.5rem;
+          padding: 0.2rem 0.6rem;
           border-radius: 999px;
-          font-size: 0.7rem;
-          margin-bottom: 0.5rem;
+          font-size: 0.75rem;
+          margin-bottom: 0.75rem;
         }
+        .section { margin-top: 2rem; }
+        .section h2 { margin-bottom: 0.5rem; }
+        .feature-list {
+          display: grid;
+          gap: 1rem;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        .feature-list li {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.25rem;
+          box-shadow: var(--shadow);
+        }
+        .feature-list h3 { margin: 0 0 0.4rem; font-size: 1.05rem; }
+        .feature-list p { margin: 0; color: var(--muted); font-size: 0.95rem; line-height: 1.55; }
+        .steps {
+          display: grid;
+          gap: 1rem;
+          counter-reset: step;
+        }
+        @media (min-width: 700px) {
+          .steps { grid-template-columns: repeat(3, 1fr); }
+        }
+        .step {
+          background: #f8fafc;
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.25rem;
+        }
+        .step::before {
+          counter-increment: step;
+          content: "Step " counter(step);
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: var(--accent);
+          margin-bottom: 0.4rem;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .step h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+        .step p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+        .faq details {
+          background: var(--card);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1rem 1.15rem;
+          margin-bottom: 0.75rem;
+          box-shadow: var(--shadow);
+        }
+        .faq summary {
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .faq p {
+          margin: 0.75rem 0 0;
+          color: var(--muted);
+          font-size: 0.95rem;
+          line-height: 1.55;
+        }
+        .cta-band {
+          margin-top: 2rem;
+          margin-bottom: 2rem;
+          padding: 2rem;
+          border-radius: var(--radius);
+          background: #0f172a;
+          color: white;
+          text-align: center;
+        }
+        .cta-band h2 { color: white; margin: 0 0 0.5rem; }
+        .cta-band p { margin: 0 0 1rem; opacity: 0.85; }
       </style>
       <div class="layout">
-        <section class="hero">
-          <span class="badge">Shadow DOM storefront</span>
-          <h1>Everything lives inside shadow roots</h1>
-          <p>
-            Browse products, manage your cart, and check out — UI markup and styles stay isolated in shadow roots.
-          </p>
-          <button type="button" id="cta-products">Shop products</button>
-        </section>
+        <div>
+          <section class="hero">
+            <span class="badge">Shadow DOM storefront</span>
+            <h1>Everything lives inside shadow roots</h1>
+            <p>
+              Browse products with filters and pagination, manage your cart, check out, and update your account —
+              all UI markup and styles are encapsulated so they stay predictable and isolated.
+            </p>
+            <button type="button" id="cta-products">Shop products</button>
+          </section>
+
+          <section class="section">
+            <h2>Why this demo</h2>
+            <p class="lead">
+              Each screen is a custom element with its own shadow tree. Global CSS from the document does not leak in,
+              and scoped CSS does not leak out — ideal for embedding widgets or keeping themes consistent per island.
+            </p>
+            <div class="cards">
+              <div class="card"><h3>Pagination</h3><p>Six items per page on the catalog.</p></div>
+              <div class="card"><h3>Filters</h3><p>Narrow by product type.</p></div>
+              <div class="card"><h3>Persistent cart</h3><p>Selections sync via localStorage.</p></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>How shopping works</h2>
+            <p class="lead">A simple path from browsing to checkout — all inside encapsulated components.</p>
+            <div class="steps">
+              <div class="step">
+                <h3>Browse the catalog</h3>
+                <p>Open Products, filter by type, and move between pages of six items each.</p>
+              </div>
+              <div class="step">
+                <h3>Build your cart</h3>
+                <p>Add items as you go. Quantities stay in localStorage so they survive a refresh.</p>
+              </div>
+              <div class="step">
+                <h3>Check out</h3>
+                <p>Enter shipping details, review the summary, and place a demo order.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2>Shadow DOM benefits</h2>
+            <ul class="feature-list">
+              <li>
+                <h3>Style isolation</h3>
+                <p>
+                  Page-level CSS cannot restyle product cards, and component styles cannot leak into the host document.
+                  That keeps demos, ads, and widgets from fighting each other.
+                </p>
+              </li>
+              <li>
+                <h3>Predictable markup</h3>
+                <p>
+                  Each route mounts a custom element with its own shadow root. Markup stays local to the screen you are on,
+                  which makes UI behavior easier to reason about.
+                </p>
+              </li>
+              <li>
+                <h3>Reusable islands</h3>
+                <p>
+                  Cart badge, product grid, and checkout form can evolve independently. Swap one island without rewriting
+                  the entire storefront shell.
+                </p>
+              </li>
+              <li>
+                <h3>Local persistence</h3>
+                <p>
+                  Cart and account fields are stored in the browser for this demo. No backend is required to try the full flow.
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <section class="section">
+            <h2>Catalog highlights</h2>
+            <p class="lead">Sample categories you will find on the Products page.</p>
+            <div class="cards">
+              <div class="card"><h3>Apparel</h3><p>Everyday wear and seasonal pieces for the demo catalog.</p></div>
+              <div class="card"><h3>Electronics</h3><p>Gadgets and accessories with simple add-to-cart actions.</p></div>
+              <div class="card"><h3>Home</h3><p>Decor and lifestyle items to exercise filters and pagination.</p></div>
+              <div class="card"><h3>Accessories</h3><p>Small add-ons that keep the cart and checkout flow busy.</p></div>
+            </div>
+          </section>
+
+          <section class="section faq">
+            <h2>Frequently asked questions</h2>
+            <p class="lead">Quick answers about this Shadow Shop demo.</p>
+            <details open>
+              <summary>Is this a real store?</summary>
+              <p>No. It is a front-end demo for Shadow DOM routing, cart state, and checkout UI. Payments are not processed.</p>
+            </details>
+            <details>
+              <summary>Where is cart data saved?</summary>
+              <p>In localStorage under a demo key. Clearing site data resets the cart and account profile fields.</p>
+            </details>
+            <details>
+              <summary>Why use shadow roots?</summary>
+              <p>
+                They encapsulate markup and CSS per page island. That mirrors how embeddable widgets and micro-frontends
+                keep styles from colliding.
+              </p>
+            </details>
+            <details>
+              <summary>Can I edit my account?</summary>
+              <p>Yes. Open Account to update name, email, and a demo password field stored locally for this session.</p>
+            </details>
+            <details>
+              <summary>What do the sidebar buttons do?</summary>
+              <p>
+                Sponsored, Seasonal sale, and Featured partner intentionally throw different client-side errors for
+                testing without reloading the page.
+              </p>
+            </details>
+          </section>
+
+          <section class="section">
+            <h2>More about this storefront</h2>
+            <p class="lead">
+              Shadow Shop is built as a small multi-page experience on a single document. Hash routes swap custom elements
+              into the main outlet while the header and cart badge stay mounted.
+            </p>
+            <div class="cards">
+              <div class="card"><h3>Home</h3><p>Overview, demos, and error-trigger buttons.</p></div>
+              <div class="card"><h3>Products</h3><p>Filterable grid with pagination.</p></div>
+              <div class="card"><h3>Cart</h3><p>Edit quantities and remove lines.</p></div>
+              <div class="card"><h3>Checkout</h3><p>Shipping form and order summary.</p></div>
+              <div class="card"><h3>Account</h3><p>Local profile fields for the demo.</p></div>
+              <div class="card"><h3>Shell</h3><p>Shared nav and cart badge across routes.</p></div>
+            </div>
+          </section>
+
+          <section class="cta-band">
+            <h2>Ready to browse?</h2>
+            <p>Jump into the catalog and add a few items to see the cart badge update live.</p>
+            <button type="button" id="cta-products-bottom">Shop products</button>
+          </section>
+        </div>
+
         <aside class="ad-actions">
           <button type="button" id="btn-sponsored">Sponsored</button>
           <button type="button" id="btn-seasonal" class="secondary">Seasonal sale</button>
@@ -164,6 +359,9 @@ class ShopHome extends HTMLElement {
       </div>
     `;
     root.getElementById("cta-products").addEventListener("click", () => {
+      window.location.hash = "products";
+    });
+    root.getElementById("cta-products-bottom").addEventListener("click", () => {
       window.location.hash = "products";
     });
 
@@ -538,19 +736,10 @@ class ShopRoot extends HTMLElement {
     root.innerHTML = `
       <style>${baseChromeStyles()}</style>
       <style>
-        :host {
-          display: block;
-          height: 100vh;
-          overflow: hidden;
-        }
         .shell {
-          height: 100%;
-          box-sizing: border-box;
+          min-height: 100vh;
           background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 32%);
-          padding: 0.75rem clamp(1rem, 4vw, 2rem) 1rem;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
+          padding: 1rem clamp(1rem, 4vw, 2rem) 2rem;
         }
         header {
           display: flex;
@@ -558,8 +747,7 @@ class ShopRoot extends HTMLElement {
           justify-content: space-between;
           gap: 1rem;
           flex-wrap: wrap;
-          margin-bottom: 0.75rem;
-          flex-shrink: 0;
+          margin-bottom: 1.5rem;
         }
         .brand {
           font-weight: 800;
@@ -599,14 +787,7 @@ class ShopRoot extends HTMLElement {
           color: white;
           border-radius: 999px;
         }
-        main {
-          max-width: 1100px;
-          margin: 0 auto;
-          width: 100%;
-          flex: 1;
-          min-height: 0;
-          overflow-y: auto;
-        }
+        main { max-width: 1100px; margin: 0 auto; }
       </style>
       <div class="shell">
         <header>
